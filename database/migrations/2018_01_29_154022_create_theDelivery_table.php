@@ -24,9 +24,10 @@ class CreateTheDeliveryTable extends Migration
             $table->timestamp('delivery_time')->nullable()->comment('发货时间');
             $table->string('logistics',255)->nullable()->comment( '物流(顺丰/申通等)' );
             $table->string('Order',255)->nullable()->comment( '订单单号' );
-            $table->timestamps();//兑换时间
+            $table->char('td_status',1)->default('0')->comment( '订单状态：0.未完成;1.已完成;' );
+            $table->timestamps();//兑换发起时间
             $table->softDeletes();
-            //            $table->unsignedInteger('admin_id')->nullable()->comment( '处理人' );
+            // $table->unsignedInteger('admin_id')->nullable()->comment( '处理人' );
         });
     }
 
@@ -37,6 +38,6 @@ class CreateTheDeliveryTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('feedback');
+        Schema::dropIfExists('theDelivery');
     }
 }

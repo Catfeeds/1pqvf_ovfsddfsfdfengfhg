@@ -31,7 +31,7 @@ class CreateMemberTable extends Migration
             $table->text('address')->nullable()->comment('收货地址');
             //步数表和用户的关系  步数表存储用户id关联
 //            $table->string('steps',255)->nullable()->default('0')->comment( '步数[day1:10,day2:20...]' );
-            $table->unsignedTinyInteger('is_admin')->nullable()->default(2)->comment( '是否是管理员' );
+            $table->unsignedTinyInteger('is_admin')->nullable()->default(2)->comment( '是否是管理员，1、2、3、' );
 
 
             $table->unsignedInteger('integral')->nullable()->comment( '积分' );

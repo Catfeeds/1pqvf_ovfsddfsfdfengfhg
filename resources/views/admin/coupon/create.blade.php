@@ -22,15 +22,15 @@
                 </div>
             </div>
             <div class="row cl">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>生成类型：</label>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>生成方式：</label>
                 <div class="formControls col-xs-8 col-sm-9 skin-minimal">
                     <div class="radio-box">
                         <input name="cr_type" type="radio" value="1" id="status-8" checked >
-                        <label for="status-1">按商家</label>
+                        <label for="status-1">商家周边</label>
                     </div>
                     <div class="radio-box">
                         <input name="cr_type" type="radio" value="0" id="status-9" >
-                        <label for="status-2">按区域</label>
+                        <label for="status-2">本市区域</label>
                     </div>
                 </div>
             </div>
@@ -51,23 +51,22 @@
                 </div>
             </div>
             <div class="row cl">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>类型：</label>
-                <div class="formControls col-xs-8 col-sm-9 skin-minimal">
-                    <div class="radio-box">
-                        <input name="type" type="radio" value="1" id="status-1" checked>
-                        <label for="status-1">无期限</label>
-                    </div>
-                    <div class="radio-box">
-                        <input name="type" type="radio" value="0" id="status-2" >
-                        <label for="status-2">有时效</label>
-                    </div>
+                <div class="radio-box" style="display:none">
+                    <input name="type" type="hidden" value="0" id="status-2" >
+                    <label for="status-2">有时效</label>
                 </div>
+            {{--</div>--}}
             </div>
-            <div class="row cl" id="hidden_t" style="display: none">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>活动时间：</label>
+            <div class="row cl" id="hidden_t" name="xz" >
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>开始时间：</label>
                 <div class="formControls col-xs-8 col-sm-9">
-                    <input type="datetime-local" class="input-text"  id="start_at" name="start_at" >
-                    <input type="datetime-local" class="input-text"  id="end_at" name="end_at" style="margin-top: 5px;">
+                    <input type="datetime-local" class="input-text"  placeholder="开始时间" id="start_at" name="start_at" ><br/>
+                    <font size="1" color="red">*开始时间务必为00:00  例如：2018/10/1 00:00</font>
+                </div>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>结束时间：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="datetime-local" class="input-text"  placeholder="结束时间" id="end_at" name="end_at" style="margin-top: 5px;"><br/>
+                    <font size="1" color="red">*结束时间务必为23:59  例如：2018/10/31 23:59</font>
                 </div>
             </div>
 
@@ -98,7 +97,7 @@
             </div>
             <div class="row cl">
                 <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
-                    <input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+                    <input id="sub" class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
                 </div>
             </div>
         </form>
@@ -146,17 +145,17 @@
                 @endforeach
             })
 
-            $("input[name='type']").change(function () {
-                if( $(this).val() == 1  ){
-                    $('#hidden_t').hide();
-                    //清除时间
-                    $("input[name='start_at']").val(null);
-                    $("input[name='end_at']").val(null);
-                }else{
-                    //如果选择了有期限
-                    $('#hidden_t').show();
-                }
-            });
+//            $("input[name='type']").change(function () {
+//                if( $(this).val() == 1  ){
+//                    $('#hidden_t').hide();
+//                    //清除时间
+//                    $("input[name='start_at']").val(null);
+//                    $("input[name='end_at']").val(null);
+//                }else{
+//                    //如果选择了有期限
+//                    $('#hidden_t').show();
+//                }
+//            });
             // 单选按钮外观效果  --<
             $('.skin-minimal input').iCheck({
                 checkboxClass: 'icheckbox-blue',
@@ -164,12 +163,14 @@
                 increaseArea: '20%'
             });
 
+
             $("#form-coupon-add").validate({
                 rules:{},
                 onkeyup:false,
                 focusCleanup:true,
                 success:"valid",
-                submitHandler:function(form){
+                submitHandler:function(form){//提交后执行以下代码
+                    $('#sub').attr("disabled","true"); //防止重复点击 $('#sub').attr("disabled","true"); //防止重复点击
                     $(form).ajaxSubmit(function(msg){
                         if( msg.status != 'success' ){  // 失败
                             layer.alert(msg.msg, {
@@ -192,5 +193,7 @@
                 }
             });
         });
+
+
     </script>
 @endsection

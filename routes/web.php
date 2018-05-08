@@ -12,8 +12,11 @@
 */
 Route::any('/','Home\IndexController@index');//设置默认访问控制器方法名
 
-//后台分组
+/**
+ * 大后台
+ */
 Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
+    //用户后台分组
     /*****************接口开始************************/
     Route::match(['get','post'],'check_api_token','MemberController@check_api_token');//验证api_token
     Route::match(['get','post'],'admin/login','MemberController@login')->name('login');//验证api_token
@@ -24,7 +27,12 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     Route::get('MemberLogin','MemberController@MemberLogin');//验证登录
     Route::get('UpdPwd','MemberController@UpdPwd');//会员修改密码
 
-//我的----------------------------
+     //微信登录
+    // Route::get('weixin', 'WeixinController@redirectToProvider');
+    // Route::get('wx_callback', 'WeixinController@handleProviderCallback');
+
+
+    //我的----------------------------
     Route::get('mydata','MemberController@my')->middleware('auth:api');//我的->首页
     Route::get('my_focus','MemberController@my_focus')->middleware('auth:api');//我的->关注列表(我关注的人)
     Route::get('my_fans','MemberController@my_fans')->middleware('auth:api');//我的->关注列表(粉丝)
@@ -67,7 +75,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     Route::get('activity/my_activity','ActivityController@my_activity')->middleware('auth:api');//查询接口(我的->我的活动页面)
     //安卓下载包 http://www.yixitongda.com/admin/download/android
     Route::get('download/android',function(){
-        return response()->download(realpath(base_path('public/android')).'/1.txt', '1.txt');
+        return response()->download(realpath(base_path('public/android')).'/paoquan1_1.apk', 'paoquan1_1.apk');
     });
 
 //跑券(地图)----------------------------
@@ -121,12 +129,12 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
 //协议
     //接口测试专用
     Route::get('test','TestController@test')->middleware('auth:api');
-    Route::get('t3','TestController@t3');
-    Route::post('t2','TestController@t2');
-    Route::get('tt','TestController@tt');//测试偏差
-    Route::get('text',function (){
-        return view('admin.xieyi.1');
-    });
+    // Route::get('t3','TestController@t3');
+    // Route::post('t2','TestController@t2');
+    // Route::get('tt','TestController@tt');//测试偏差
+    // Route::get('text',function (){
+    //     return view('admin.xieyi.1');
+    // });
 
     /*******************接口结束**********************/
 
@@ -202,7 +210,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     Route::post('dynamic/recycling_list', 'DynamicController@recycling_list');//动态-回收站-查询数据
     Route::post('dynamic/restore', 'DynamicController@restore');//动态-回收站-恢复
 
-    //除login页面外,所有控制器进行登录防翻墙
+    //管理页后台认证  除login页面外,所有控制器进行登录防翻墙
     Route::group(['middleware'=>'checkadmin'], function () {
         // 退出登录
         Route::get('logout','IndexController@logout');

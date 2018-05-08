@@ -38,7 +38,7 @@ return [
     |
     */
 
-    'debug' => env('APP_DEBUG', true),
+    'debug' => env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -187,6 +187,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        //添加Socialite Providers第三方登录
+        SocialiteProviders\Manager\ServiceProvider::class,
 
     ],
 
@@ -244,7 +246,8 @@ return [
         'Image' => Intervention\Image\Facades\Image::class,
         //excel
         'Excel'    => Maatwebsite\Excel\Facades\Excel::class,
-        //极光推送
+        //Socialite
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
 
     ],
 

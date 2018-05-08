@@ -3,13 +3,13 @@
 use Illuminate\Database\Seeder;
 use Faker\Factory;
 use App\Models\Admin;
-class AdminTableSeeder extends Seeder
+class DatabaseSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      *
      * @return void
-    //     */
+    */
     public function run(Admin $admin)
     {
         $admin -> truncate();//重置

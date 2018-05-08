@@ -1,34 +1,11 @@
 @extends('public.public')
-@section('title')批量批量添加优惠券@endsection
+@section('title')手工批量添加优惠券@endsection
 @section('content')
     <article class="page-container">
         <form action="{{ url('admin/coupon/stores')  }}" method="post"  class="form form-horizontal" id="form-coupon-add">
             {{ csrf_field() }}
-
-            <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>导入方式：</label>
-            <div class="formControls col-xs-8 col-sm-9 skin-minimal">
-            <div class="radio-box">
-            <input name="type3" type="radio" value="1" id="status-5"  checked >
-            <label for="status-5">手工</label>
-            </div>
-            <div class="radio-box">
-            <input name="type3" type="radio" value="0" id="status-6" >
-            <label for="status-6">自动</label>
-            </div>
-            </div>
-            </div>
+            <input name="type3" type="hidden" value="1" id="status-5"  checked >
             {{--自动--}}
-            <div class="row cl" id="ex" style="display: none;">
-            <label class="form-label col-xs-4 col-sm-3">导入excel：</label>
-                <div class="formControls col-xs-8 col-sm-9" >
-                    <span class="btn-upload form-group">
-                      <input class="input-text upload-url radius" type="text" name="uploadfile-1" id="uploadfile-1" readonly>
-                                            <a href="javascript:void();" class="btn btn-secondary radius">浏览文件</a>
-                      <input type="file" multiple name="excel" class="input-file">
-                    </span>
-                </div>
-            </div>
             <div class="row cl" id="ex2" style="display: none;">
                 <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>所属商家：</label>
                 <div class="formControls col-xs-8 col-sm-9">
@@ -132,15 +109,15 @@
                 </div>
             </div>
             <div class="row cl"  name="xz">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>生成类型：</label>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>生成方式：</label>
                 <div class="formControls col-xs-8 col-sm-9 skin-minimal">
                     <div class="radio-box">
                         <input name="cr_type" type="radio" value="1" id="status-8" checked >
-                        <label for="status-1">按商家</label>
+                        <label for="status-1">商家周边</label>
                     </div>
                     <div class="radio-box">
-                        <input name="cr_type" type="radio" value="0" id="status-9" >
-                        <label for="status-2">按区域</label>
+                        <input name="cr_type" type="radio" value="0" id="status-9"  >
+                        <label for="status-2">本市区域</label>
                     </div>
                 </div>
             </div>
@@ -157,7 +134,7 @@
                     </select>
                 </div>
                 <div class="formControls col-xs-8 col-sm-9" id="ce2">
-                    <input type="text" class="input-text"  placeholder="请填写详细的商家地址" id="address2" name="address2">
+                    <input type="text" class="input-text"  placeholder="必须填写详细的商家地址，例：深圳市南关路鸿瑞花园东门65-17号" id="address2" name="address2">
                 </div>
             </div>
             <div class="row cl" name="xz">
@@ -166,24 +143,29 @@
                     <input type="text" class="input-text"  placeholder="生成数量一次避免过大,最好不超过300张.生成后编号为自动生成" id="number" name="number">
                 </div>
             </div>
-            <div class="row cl" name="xz">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>类型：</label>
+            <div class="row cl" name="xz" style="display: none">
+                {{--<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>类型：</label>--}}
                 <div class="formControls col-xs-8 col-sm-9 skin-minimal">
+                    {{--<div class="radio-box">--}}
+                        {{--<input name="type" type="radio" value="1" id="status-1" checked >--}}
+                        {{--<label for="status-1">无期限</label>--}}
+                    {{--</div>--}}
                     <div class="radio-box">
-                        <input name="type" type="radio" value="1" id="status-1" checked >
-                        <label for="status-1">无期限</label>
-                    </div>
-                    <div class="radio-box">
-                        <input name="type" type="radio" value="0" id="status-2" >
+                        <input name="type" type="hidden" value="0" id="status-2" >
                         <label for="status-2">有时效</label>
                     </div>
                 </div>
             </div>
-            <div class="row cl" id="hidden_t" style="display: none" name="xz" >
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>活动时间：</label>
+            <div class="row cl" id="hidden_t" name="xz" >
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>开始时间：</label>
                 <div class="formControls col-xs-8 col-sm-9">
-                    <input type="datetime-local" class="input-text"  placeholder="开始时间" id="start_at" name="start_at" >
-                    <input type="datetime-local" class="input-text"  placeholder="结束时间" id="end_at" name="end_at" style="margin-top: 5px;">
+                    <input type="datetime-local" class="input-text"  placeholder="开始时间" id="start_at" name="start_at" ><br/>
+                    <font size="1" color="red">*开始时间务必为00:00  例如：2018/10/1 00:00</font>
+                </div>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>结束时间：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="datetime-local" class="input-text"  placeholder="结束时间" id="end_at" name="end_at" style="margin-top: 5px;"><br/>
+                    <font size="1" color="red">*结束时间务必为23:59  例如：2018/10/31 23:59</font>
                 </div>
             </div>
 
@@ -220,7 +202,7 @@
             </div>
             <div class="row cl">
                 <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
-                    <input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+                    <input id="sub" class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
                 </div>
             </div>
         </form>
@@ -327,17 +309,17 @@
                     $('#hidden_t2').show();
                 }
             });
-            $("input[name='type']").click(function () {
-                if( $(this).val() == 1  ){
-                    $('#hidden_t').hide();
-                    //清除时间
-                    $("input[name='start_at']").val(null);
-                    $("input[name='end_at']").val(null);
-                }else{
-                    //如果选择了有期限
-                    $('#hidden_t').show();
-                }
-            });
+//            $("input[name='type']").click(function () {
+//                if( $(this).val() == 1  ){
+//                    $('#hidden_t').hide();
+//                    //清除时间
+//                    $("input[name='start_at']").val(null);
+//                    $("input[name='end_at']").val(null);
+//                }else{
+//                    //如果选择了有期限
+//                    $('#hidden_t').show();
+//                }
+//            });
             // 单选按钮外观效果  --<
             $('.skin-minimal input').iCheck({
                 checkboxClass: 'icheckbox-blue',
@@ -352,6 +334,7 @@
                 focusCleanup:true,
                 success:"valid",
                 submitHandler:function(form){
+                    $('#sub').attr("disabled","true"); //防止重复点击
                     $(form).ajaxSubmit(function(msg){
                         if( msg.status != 'success' ){  // 失败
                             layer.alert(msg.msg, {

@@ -13,7 +13,7 @@ class CreateAdminTable extends Migration
      */
     public function up()
     {
-        // 管理员表
+        // 超级管理员表
         Schema::create('admin',function(Blueprint $table){
             // 声明表结构
             $table->engine = 'InnoDB';

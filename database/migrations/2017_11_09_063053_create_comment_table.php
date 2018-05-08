@@ -20,10 +20,9 @@ class CreateCommentTable extends Migration
             $table->increments('id')->comment( '主键ID' );
             $table->unsignedInteger('dy_id')->nullable()->comment( '所属动态id' );
             $table->unsignedInteger('to_id')->nullable()->comment( '所属话题id' );
+            $table->unsignedInteger('parent_id')->nullable()->comment( '评论的id,即回复评论的父id' );
             $table->unsignedInteger('member_id')->nullable()->comment( '评论人id' );
-//            $table->string('content',255)->nullable()->comment( '评论内容' );
             $table->text('content')->nullable()->comment('评论内容');
-
             $table->timestamps();//评论时间
             $table->softDeletes();
         });

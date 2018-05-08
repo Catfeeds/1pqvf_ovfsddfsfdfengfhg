@@ -25,9 +25,10 @@ class CreateCouponTable extends Migration
             $table->timestamp('end_at')->nullable()->comment('到期时间/结束时间');
             $table->timestamp('create_at')->nullable()->comment('获取时间');
             $table->float('price', 6, 2)->comment('优惠价格/折扣');
-            $table->unsignedTinyInteger('status')->comment( '优惠券使用状态(1:未使用,2:已使用,3:过期,4,被发布到互换了)' );
+            $table->unsignedTinyInteger('status')->comment( '优惠券使用状态(1:未使用,2:已使用,3:过期)' );
             $table->unsignedInteger('member_id')->nullable()->comment( '所属用户id' );
             $table->unsignedTinyInteger('action')->nullable()->comment( '优惠方式:1=金额.2=折扣.3=扫码(未开通),4=提交到兑换' );
+//            $table->unsignedTinyInteger('type')->nullable()->comment( '类型(1:有期限,2:无期限)' );
             //优惠券所在区域(南山区) 优惠券关联图片 获取所在详细纬度
             $table->unsignedInteger('picture_id')->comment('所属图片');
             $table->string('latitude',255)->nullable()->comment( '优惠券所在纬度' );
