@@ -41,7 +41,10 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     Route::get('show_user_content','MemberController@show_user_content')->middleware('auth:api');//关注详情
     Route::get('cancel_focus','MemberController@cancel_focus')->middleware('auth:api');//我的->取消关注-
     Route::get('nice','MemberController@nice')->middleware('auth:api');//我的->点赞
-    Route::get('comments','CommentController@comments')->middleware('auth:api');//我的->评论
+    Route::get('comments','CommentController@comments')->middleware('auth:api');//我的->发表评论
+    Route::get('re_comments','CommentController@re_comments')->middleware('auth:api');//我的->回复评论
+    Route::get('del_comments','CommentController@del_comments')->middleware('auth:api');//博主或用户删除评论及回复
+    Route::get('query_comment','CommentController@query_comment')->middleware('auth:api');//查询某一条动态/话题下的所有评论
     Route::get('del_dy','DynamicController@del_dy')->middleware('auth:api');//我的->个人动态->删除动态
     Route::post('release_dynamic','DynamicController@release_dynamic')->middleware('auth:api');//我的->个人动态->发布动态
     Route::get('my_profile','MemberController@my_profile')->middleware('auth:api');//我的->个人资料->首页
@@ -89,6 +92,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     //消息通知接口
     Route::get('inform/new_alerts','InformController@new_alerts')->middleware('auth:api');//APP启动,查看是否有新的消息通知
     Route::get('inform/see_alerts','InformController@see_alerts')->middleware('auth:api');//用户点击,查看消息通知
+    Route::get('inform/msm_inf','InformController@msm_inf')->middleware('auth:api');//系统调用接口——有新评论提醒
 
 //排行----------------------------
 
@@ -107,7 +111,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
 
 //排行----------------------------
     /* 动态 */
-    Route::get('dynamic/show_list','DynamicController@show_list')->middleware('auth:api');//动态首页
+    Route::get('dynamic/show_list','DynamicController@show_list')->middleware('auth:api');//动态首页即动态列表
     Route::get('dynamic/show_dy_content','DynamicController@show_dy_content')->middleware('auth:api');//动态详情页
     Route::get('dynamic/show_nice_content','DynamicController@show_nice_content')->middleware('auth:api');//点赞详情页
 
@@ -252,6 +256,8 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
         Route::resource('appraise', 'AppraiseController');
         //用户评论管理
         Route::resource('comment', 'CommentController');
+        //强制删除某条评论
+        Route::resource('pun_comments','CommentController@pun_comments');
         //奖章管理
         Route::resource('medal', 'MedalController');
         //排行管理
