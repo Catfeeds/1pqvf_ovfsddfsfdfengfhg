@@ -92,12 +92,21 @@ class ActMallController extends Controller
         }
     }
 
+    /**
+     *编辑页面
+     */
     public function edit(ActMall $actmall)
     {
         $data['actmallInfo'] = $actmall;
         return view('admin.actmall.edit', $data);
     }
 
+    /**
+     * 执行更新数据库
+     * @param Request $request
+     * @param ActMall $actmall
+     * @return array
+     */
     public function update(Request $request, ActMall $actmall)
     {
         if (!$request->ajax()) {

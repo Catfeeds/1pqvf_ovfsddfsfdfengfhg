@@ -74,7 +74,11 @@
 
 			<tr>
 				<td>当前Session数量 </td>
-				<td>{{ count(Request::session())  }}</td>
+				<td><?php
+                    $re_sessions = Request::session()->all();
+					$cou_se = !empty($re_sessions) ? count($re_sessions) : 0 ;
+					echo $cou_se;
+				  ?></td>
 			</tr>
 			<tr>
 				<td>当前SessionID </td>

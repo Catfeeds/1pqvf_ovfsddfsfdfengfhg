@@ -61,7 +61,7 @@ class Comment extends Model
     /**
      * 传递所有父级id数组集合 返回其本身及其后代id的一维数组（含父id）
      * @param [array] $cate 要递归的数组
-     * @param [array] $p_ids 父级分类ID的一维数组
+     * @param [array] $p_ids 父级分类ID的二维数组例如：array:3 [0 => array:1 ["id" => 4]1 => array:1 ["id" => 6]2 => array:1 ["id" => 8]]
      * @return [type]  [description]
      */
     static public function getChildrenIds($cate, $p_ids)

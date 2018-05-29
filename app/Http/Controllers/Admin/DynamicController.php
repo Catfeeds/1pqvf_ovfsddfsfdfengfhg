@@ -18,11 +18,19 @@ class DynamicController extends Controller
         return view('admin.dynamic.index');
     }
 
+    /**
+     * 回收站
+     * 返回：
+     */
     public function recycling()
     {
         return view('admin.dynamic.recycling');
     }
 
+    /**
+     * 回收站列表
+     * 返回：
+     */
     public function recycling_list(Request $request, Dynamic $dynamic)
     {
 
@@ -47,9 +55,9 @@ class DynamicController extends Controller
         $id = $request->only('id');
         $res = $dynamic->where('id', $id['id'])->restore();
         if ($res) {
-            return ['status' => 'success'];
+            return ['status' => "success"];
         } else {
-            return ['status' => 'fail', 'error' => '失败！'];
+            return ['status' => "fail", 'error' => '失败！'];
         }
     }
     public function create(Member $member)
@@ -61,7 +69,7 @@ class DynamicController extends Controller
     public function store(Request $request, Dynamic $dynamic)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => "fail", 'error' => '非法的请求类型'];
         }
         $data = $request->only('member_id', 'img_url', 'editorValue', 'addres', 'content');
         $role = [
@@ -80,23 +88,28 @@ class DynamicController extends Controller
         $validator = Validator::make($data, $role, $message);
         //如果验证失败,返回错误信息
         if ($validator->fails()) {
-            return ['status' => 'fail', 'msg' => $validator->messages()->first()];
+            return ['status' => "fail", 'msg' => $validator->messages()->first()];
         }
         $data['img_url'] = json_encode($data['img_url']);
         $res = $dynamic->create($data);
         if ($res->id) {
-            return ['status' => 'success', 'msg' => '添加成功'];
+            return ['status' => "success", 'msg' => '添加成功'];
         }
-        return ['status' => 'fail', 'msg' => '添加失败'];
+        return ['status' => "fail", 'msg' => '添加失败'];
     }
 
+    /**
+     * 动态首页列表（管理员）
+     * @param Request $request
+     * @param Dynamic $dynamic
+     * @return array
+     */
     public function ajax_list(Request $request, Dynamic $dynamic)
     {
-
         if ($request->ajax()) {
             $data = $dynamic->with('member')->select('id', 'created_at', 'member_id', 'nice_num', 'img_url', 'content', 'addres')->get()->toArray();
             foreach ( $data as $k=>$v ){
-                $data[$k]['nice_num'] = count( json_decode( $v['nice_num'],true ) );
+                $data[$k]['nice_num'] = !empty($v['nice_num']) ? count( json_decode( $v['nice_num'],true ) ) : 0 ;
             }
             $cnt = count($data);
             $info = [
@@ -138,52 +151,111 @@ class DynamicController extends Controller
                     @unlink($v);
                 }
             }
-            return ['status' => 'success', 'msg' => '修改成功'];
+            return ['status' => "success", 'msg' => "修改成功"];
         } else {
-            return ['status' => 'fail', 'code' => 3, 'error' => '修改失败！'];
+            return ['status' => "fail", 'code' => 3, 'error' => "修改失败！"];
         }
     }
 
-    public function destroy($id)
+    /**
+     * 管理员删除动态
+     * $id动态id
+     */
+    public function destroy($id,Comment $comment)
     {
         $dynamic = new Dynamic();
-        $dynamic = $dynamic->find($id);
-        $res = $dynamic->delete();
+        # 删除图片
+        $dy_coll = $dynamic->select('img_url')->find($id);
+        $dy_coll = obj_arr($dy_coll);//强制转数组
+        // 如果存在图片，需要删除图片
+        if(!empty($dy_coll['img_url'])){
+            $fine_arr = json_decode( $dy_coll['img_url']);
+            //为图片拼接完整路径
+            array_walk(
+                $fine_arr,
+                function (&$s, $k, $prefix='./') {
+                    $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
+                }
+            );
+            //批量删除
+            delPics($fine_arr);
+        }
+        # 删除文章下的所有评论
+        //查询文章下的一级评论
+        $dy_cos = $comment->select('id')->where('dy_id',$id)->get();
+        $dy_cos = obj_arr($dy_cos);
+        if(!empty($dy_cos)){//不为空一一删除全部；为空不需要删除
+            $all_com = $comment->select('id','parent_id')->get()->toArray();//所有评论id及父id
+            $id_arr = $comment->getChildrenIds($all_com, $dy_cos);//该文章下的所有评论的id
+            $comment->whereIn('id',$id_arr)->delete();
+        }
+        # 删除文章
+        $res = $dynamic->where('id',$id)->delete();
         if ($res) {
-            return ['status' => 'success'];
+            return ['status' => "success"];
         } else {
-            return ['status' => 'fail', 'error' => '删除失败！'];
+            return ['status' => "fail", 'error' => "删除失败！"];
         }
     }
-
-    /*
-     * 删除动态(软删除) //需要动态id,因为用户删除的只能是自己的动态,所以不考虑是否是官方
+    /**
+     * 删除动态(真删除) //需要动态id,因为用户删除的只能是自己的动态,所以不考虑是否是官方
      */
-    public function del_dy(Request $request, Dynamic $dynamic)
+    public function del_dy(Request $request, Dynamic $dynamic, Comment $comment)
     {
-        $data = $request->only('record_id');
-        $role = ['record_id' => 'required'];//被删除的记录的id
-        $message = ['record_id.required' => '被删除的记录的id不能为空！',];
+        $data = $request->only('act_mem_id','dy_id');
+        $role = ['dy_id' => 'exists:dynamic,id'];//被删除的记录的id
+        $message = ['dy_id.exists' => '请求不合法！',];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        $dynamic = $dynamic->find($data['record_id']);
-        $res = $dynamic->delete();
+        $dy_coll = $dynamic->select('member_id','img_url')->where('id',$data['dy_id'])->first();
+        # 判断当前文章博主是否为当前用户
+        if ($dy_coll['member_id'] != $data['act_mem_id']){//不是拥有者：拒绝
+            res(null, '无权限或不存在', 'fail', 102);
+        }
+        # 如果存在图片，需要删除图片
+        if(!empty($dy_coll['img_url'])){
+            $fine_arr = json_decode( $dy_coll['img_url']);
+            //为图片拼接完整路径
+            array_walk(
+                $fine_arr,
+                function (&$s, $k, $prefix='./') {
+                    $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
+                }
+            );
+            //批量删除
+            delPics($fine_arr);
+        }
+        # 删除文章下的所有评论
+        //查询文章下的一级评论
+        $dy_cos = $comment->select('id')->where('dy_id',$data['dy_id'])->get()->toArray();
+        if(!empty($dy_cos)){//不为空一一删除全部；为空不需要删除
+            $all_com = $comment->select('id','parent_id')->get()->toArray();//所有评论id及父id
+            $id_arr = $comment->getChildrenIds($all_com, $dy_cos);//该文章下的所有评论的id
+            $del_comment = $comment->whereIn('id',$id_arr)->delete();
+        }else{
+            $del_comment = true;
+        }
+        # 删除文章
+        $res = $dynamic->where('id',$data['dy_id'])->delete();
         if ($res) {
-            res(null, '删除成功');
+            if($del_comment){
+                res(null, '删除成功');
+            }
+            res(null, '删除成功,未删除评论');
         }
         res(null, '失败', 'fail', 100);
     }
 
-    /*
+    /**
      * 发布动态
      */
     public function release_dynamic(Request $request, Dynamic $dynamic)
     {
         $data = $request->only('member_id', 'content', 'addres', 'img1', 'img2', 'img3');
         $role = [
-            'member_id' => 'required | exists:member,id',
+            'member_id' => 'exists:member,id',
             'content' => 'required',
             'addres' => 'required',
             'img1' => 'required|image',
@@ -191,7 +263,6 @@ class DynamicController extends Controller
             'img3' => 'nullable|image',
         ];
         $message = [
-            'member_id.required' => '用户id不能为空！',
             'member_id.exists' => '用户id不合法！',
             'content.required' => '动态内容不能为空！',
             'addres.required' => '发布的地点不能为空！',
@@ -296,31 +367,36 @@ class DynamicController extends Controller
     }
 
     /**
-     * 动态详情
-     * 返回： 动态所有者 动态图片 动态内容 点赞数
+     * 动态详情（不含评论）
+     * 返回：博主id'member_id' 点赞总数nice_num 内容content 博主昵称member_nickname 博主头像member_avatar 博文图片img_url 点赞人头像列表'nice_list' 博主性别'sex' 是否已关注'is_focus' 当前查询的用户 'act_mem_id'
      */
-    public function show_dy_content(Request $request, Member $member, Dynamic $dynamic, Comment $comment)
+    public function show_dy_content(Request $request, Member $member, Dynamic $dynamic)
     {
-        $data = $request->only('member_id', 'dynamic_id');
+        $data = $request->only('member_id', 'dynamic_id','act_mem_id');
         $role = [
+            'act_mem_id' => 'required',
             'member_id' => 'required',
-            'dynamic_id' => 'required | exists:dynamic,id',
+            'dynamic_id' => 'required',
         ];
         $message = [
+            'act_mem_id.required' => '用户请求不合法！',
             'member_id.required' => '用户id不能为空！',
             'dynamic_id.required' => '动态id不能为空！',
-            'dynamic_id.exists' => '请求不合法！',
         ];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        //动态的信息
-        $res1 = $dynamic->select('member_id', 'nice_num', 'member_id')->find($data['dynamic_id']);
+        //动态的全部信息
+        $res1 = $dynamic->select('member_id', 'nice_num','img_url','content','addres','created_at')->find($data['dynamic_id']);
+        $dy_mem = $member->select('nickname','avatar')->where('id',$res1['member_id'])->first();//发布人昵称及头像;
+        //$res1['nice_num']点赞详情
         if (empty($res1['nice_num'])) {
             $nice = null;//点赞人为空
             $nices['nice_list'] = null;
+            $nice_num = 0 ;
         } else {
+            $nice_num= count(json_decode($res1['nice_num'], true));//点赞总数
             $nice = json_decode($res1['nice_num'], true);
             arsort($nice);
             $i = 1;
@@ -334,13 +410,27 @@ class DynamicController extends Controller
                 $nices['nice_list'][] = $request->server('HTTP_HOST') . '/' . $avatar['avatar'];
                 $i++;
             }
-            $arr = [];
         }
-        $arr = $nices;//点赞人的头像
-        //发布人的信息(性别,是否关注)
+        $arr = [];
+        $arr = $nices;//点赞人的头像$arr[ "nice_list"]
+        $arr['nice_num'] =  $nice_num; //点赞数
+        $arr['member_id'] = $res1['member_id'];//博主id
+        $arr['act_mem_id'] = $data['act_mem_id'];//当前用户id
+        $arr['content'] = $res1['content'];//动态内容
+        $arr['member_nickname'] = $dy_mem['nickname'];//发布人昵称
+        $arr['member_avatar'] = $request->server('HTTP_HOST') . '/' . $dy_mem['avatar'];//发布人头像
+        $img_url = json_decode($res1['img_url']);
+        //为图片加入前缀“www.yixitongda.com/”
+        array_walk(
+            $img_url,
+            function (&$s, $k, $prefix='www.yixitongda.com/') {
+            $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
+            }
+        );
+        $arr['img_url'] = $img_url;
         $res2 = $member->select('fans_id', 'sex')->find($res1['member_id']);
-        $arr['sex'] = $res2['sex'];
-        $friends_id = empty($res2['fans_id']) ? false : json_decode($res2['fans_id']);
+        $arr['sex'] = $res2['sex'];//性别
+        $friends_id = empty($res2['fans_id']) ? false : json_decode($res2['fans_id']);//是否关注
         if ($friends_id == false) {
             //如果发布人的粉丝为空,说明当前用户还没关注
             $arr['is_focus'] = 2;
@@ -352,25 +442,26 @@ class DynamicController extends Controller
                 $arr['is_focus'] = 2;
             }
         }
-        //返回倒序的评论 评论:评论人昵称,头像,评论时间,评论内容
-        $res = $comment->select('member_id', 'content', 'created_at')->orderBy('created_at', 'DESC')->where('dy_id', $data['dynamic_id'])->get();
-        $arr['comment_num'] = count($res);
-        if (empty($res[0])) {
-            //没有评论
-            $arr['comment_list'] = null;
-        } else {
-            foreach ($res as $k => $v) {
-                $res2 = $member->select('nickname', 'avatar')->find($v['member_id']);
-                $time = date('Y-m-d H:i:s', strtotime($v['created_at']));
-                $arr['comment_list'][] = [
-                    'content' => $v['content'],//评论内容
-                    'created_at' => $time,//评论时间
-                    'nickname' => $res2['nickname'],//评论人昵称
-                    'avatar' => $request->server('HTTP_HOST') . '/' . $res2['avatar'],//评论人头像
-                ];
-            }
-        }
         res($arr);
+//        //返回倒序的评论 评论:评论人昵称,头像,评论时间,评论内容
+//        $res = $comment->select('member_id', 'content', 'created_at')->orderBy('created_at', 'DESC')->where('dy_id', $data['dynamic_id'])->get();
+//        $arr['comment_num'] = count($res);//评论数
+//        if (empty($res[0])) {
+//            //没有评论
+//            $arr['comment_list'] = null;
+//        } else {
+//            foreach ($res as $k => $v) {
+//                $res2 = $member->select('nickname', 'avatar')->find($v['member_id']);
+//                $time = date('Y-m-d H:i:s', strtotime($v['created_at']));
+//                $arr['comment_list'][] = [
+//                    'content' => $v['content'],//评论内容
+//                    'created_at' => $time,//评论时间
+//                    'nickname' => $res2['nickname'],//评论人昵称
+//                    'avatar' => $request->server('HTTP_HOST') . '/' . $res2['avatar'],//评论人头像
+//                ];
+//            }
+//        }
+//        res($arr);
     }
 
     /**
@@ -410,4 +501,41 @@ class DynamicController extends Controller
         }
         res($arr);
     }
+
+    /****************************** 递归***************************************************************************/
+
+    /**
+     * 传递父级分类ID返回所有子分类ID（不含父id）
+     * @param [type] $cate 要递归的数组
+     * @param [type] $pid 父级分类ID
+     * @return [type]  [description]
+     */
+    public function getChildrenId($cate, $pid)
+    {
+        $arr = array();
+        foreach ($cate as $v) {
+            if ($v['parent_id'] == $pid) {
+                $arr[] = $v['id'];
+                $arr = array_merge($arr, self::getChildrenId($cate, $v['id']));
+            }
+        }
+        return $arr;
+    }
+
+    /**
+     * 传递所有父级id数组集合 返回其本身及其后代id的一维数组（含父id）
+     * @param [array] $cate 要递归的数组
+     * @param [array] $p_ids 父级分类ID的二维数组例如：array:3 [0 => array:1 ["id" => 4]1 => array:1 ["id" => 6]2 => array:1 ["id" => 8]]
+     * @return [type]  [description]
+     */
+    public function getChildrenIds($cate, $p_ids)
+    {
+        $arr = array();
+        foreach ($p_ids as $val){
+            $co_id = array($val['id']);
+            $arr =array_merge($co_id, array_merge($arr,self::getChildrenId($cate,$val['id'])));
+        }
+        return $arr;
+    }
+
 }

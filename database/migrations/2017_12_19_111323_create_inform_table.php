@@ -21,7 +21,7 @@ class CreateInformTable extends Migration
             $table->text('to_member')->nullable()->comment('被被通知人id，通知全部为则null');//
             $table->smallInteger('inf_path')->nullable()->comment('消息分类:1系统发给所有人；2有新评论');//消息类别
             //消息内容,发布时间,标题图片
-            $table->timestamp('push_time')->nullable()->comment('消息发送时间');
+            $table->timestamp('push_time')->nullable()->comment('消息发送时间，系统通知才有值');
             $table->string('title',255)->comment( '标题' );
             $table->text('content')->comment('消息内容');
 //            $table->string('inform_url',255)->nullable()->comment( '图片' );

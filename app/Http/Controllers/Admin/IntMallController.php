@@ -99,7 +99,7 @@ class IntMallController extends Controller
         }
     }
 
-    public function edit(Request $request, IntMall $intMall)
+    public function edit(IntMall $intMall)
     {
         $data['intmallInfo'] = $intMall;
         return view('admin.intmall.edit', $data);

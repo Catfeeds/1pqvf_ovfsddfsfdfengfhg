@@ -21,7 +21,7 @@ class TopicController extends Controller
     }
 
     /**
-     *  添加话题
+     *  添加话题分类
      */
     public function create(Subject $subject, Admin $admin)
     {
@@ -112,13 +112,14 @@ class TopicController extends Controller
     }
 
     /**
-     *  话题列表
+     *  话题详细列表(管理员)
+     * 返回：所有话题的id,所属话题分类，分类内容，图片等
      */
     public function ajax_list(Request $request, Topic $topic)
     {
         if ($request->ajax()) {
-            $data = $topic->with('subject')->with('admin')->with('member')->select('id', 'admin_id', 'subject_id', 'subjec_catename', 'member_id', 'nice_num', 'content', 'img_url', 'created_at')->get();
-            $cnt = count($data);
+            $data = $topic->with('subject')->with('member')->select('id', 'lev_state', 'subject_id', 'subjec_catename', 'member_id', 'nice_num', 'content', 'img_url', 'created_at')->get();
+            $cnt = !empty($data) ? count($data) : 0;
             $info = [
                 'draw' => $request->get('draw'),
                 'recordsTotal' => $cnt,
@@ -137,6 +138,11 @@ class TopicController extends Controller
         return view('admin.topic.edit', $data);
     }
 
+    /**
+     * 修改话题分类（管理员）
+     * @param Request $request
+     * @return array
+     */
     public function update(Request $request, Topic $topic, Subject $subject)
     {
         if (!$request->ajax()) {
@@ -144,13 +150,13 @@ class TopicController extends Controller
         }
         $data = $request->only('admin_id', 'subject_id', 'editorValue', 'img_url', 'old_url');
         $role = [
-            'admin_id' => 'required',
-            'subject_id' => 'required',
+            'admin_id' => 'exists:admin,id',
+            'subject_id' => 'exists:subject,id',
             'editorValue' => 'required',
         ];
         $message = [
-            'admin_id.required' => '发布人不能为空！',
-            'subject_id.required' => '所属分类不能为空！',
+            'admin_id.exists' => '管理员不合法！',
+            'subject_id.exists' => '所属分类不存在！',
             'editorValue.required' => '话题内容不能为空！',
         ];
         $validator = Validator::make($data, $role, $message);
@@ -197,31 +203,65 @@ class TopicController extends Controller
         }
     }
 
-    public function destroy($id)
+    /**
+     * 管理员删除话题
+     * @param $id
+     * @return array
+     */
+    public function destroy($id,Comment $comment)
     {
         $topic = new Topic();
-        $topic = $topic->find($id);
-        $res = $topic->delete();
+        $topic_coll = $topic->select('img_url')->where('id',$id)->first();
+        $topic_coll = obj_arr($topic_coll);//强制转数组
+        # 如果存在图片，需要删除图片
+        if(!empty($topic_coll['img_url'])){
+            $fine_arr = json_decode( $topic_coll['img_url']);
+            //为图片拼接完整路径
+            array_walk(
+                $fine_arr,
+                function (&$s, $k, $prefix='./') {
+                    $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
+                }
+            );
+            //批量删除
+            delPics($fine_arr);
+        }
+        # 删除文章下的所有评论
+        //查询文章下的一级评论
+        $t_cos = $comment->select('id')->where('to_id',$id)->get();
+        $t_cos = obj_arr($t_cos);
+        if(!empty($t_cos)){//不为空一一删除全部；为空不需要删除
+            $all_com = $comment->select('id','parent_id')->get()->toArray();//所有评论id及父id
+            $id_arr = $comment->getChildrenIds($all_com, $t_cos);//该文章下的所有评论的id
+            $del_comment = $comment->whereIn('id',$id_arr)->delete();
+        }else{
+            $del_comment = true;
+        }
+        //删除话题
+        $res = $topic->where('id',$id)->delete();
+//        dump($res);exit();
         if ($res) {
-            return ['status' => 'success'];
+            return ['status' => "success"];
         } else {
-            return ['status' => 'fail', 'error' => '删除失败！'];
+            return ['status' => "fail", 'error' => "删除失败！"];
         }
     }
 
     /**
-     *  话题详情
+     *  分类下的话题列表
+     * 传入：当前用户member_id 话题分类subject_id
+     * 返回： 指定话题分类下的列表
      */
     public function details(Request $request, Subject $subject, Topic $topic, Admin $admin, Member $member, Comment $comment)
     {
         $data = $request->only('subject_id', 'member_id');
         $role = [
             'subject_id' => 'required',
-            'member_id' => 'required',
+            'member_id' => 'exists:member,id',
         ];
         $message = [
             'subject_id.required' => '话题分类id不能为空！',
-            'member_id.required' => '用户id不能为空！',
+            'member_id.exists' => '用户不合法！',
         ];
         $validator = Validator::make($data, $role, $message);
         //如果验证失败,返回错误信息
@@ -231,9 +271,9 @@ class TopicController extends Controller
         $res = $subject->select('read_num')->find($data['subject_id']);
         $read_num = empty($res['read_num']) ? 0 : $res['read_num'];//阅读数
         $upd = $subject->where('id', $data['subject_id'])->update(['read_num' => $read_num + 1]);//更新下阅读数
-        $res2 = $topic->select('id', 'admin_id', 'member_id', 'nice_num', 'content', 'img_url', 'created_at', 'addres')->orderBy('created_at', 'DESC')->where('subject_id', $data['subject_id'])->get();
-        $num = empty($res2[0]) ? false : count($res2);//参与数,记录条数
-        $arr['read_num'] = $read_num;//阅读数
+        $res2 = $topic->select('id', 'lev_state', 'member_id', 'nice_num', 'content', 'img_url', 'created_at', 'addres')->orderBy('created_at', 'DESC')->where('subject_id', $data['subject_id'])->get()->toArray();
+        $num = empty($res2[0]) ? false : count($res2);//该话题总条数:空为false
+        $arr['read_num'] = $read_num;//已阅读数
         if ($num === false) {
             $arr['participate_num'] = 0;//参与数0
             $arr['list'] = null;//话题为空
@@ -242,28 +282,24 @@ class TopicController extends Controller
             $arr['participate_num'] = count($res2);//参与数0
         }
         foreach ($res2 as $k => $v) {
-            //发布人是否是管理,头像,昵称
-            if (empty($v['admin_id'])) {
-                $user_id = $v['member_id'];
+            //发布人是否是管理
+            if ($v['lev_state'] == 1) {//1为普通用户
                 $is_admin = 2;//不是管理
-                $row = $member->select('nickname', 'avatar')->find($user_id);
-                $nickname = $row['nickname'];//发布人的昵称
             } else {
-                $user_id = $v['admin_id'];
                 $is_admin = 1;//是管理
-                $row = $admin->select('username', 'avatar')->find($user_id);
-                $nickname = $row['username'];
             }
-            //时间
-            $time = format_date($v['created_at']);
-            //点赞数
-            $nice = json_decode($v['nice_num'], true);
-            $nice_num = count($nice);
-            if ($nice_num !== 0) {
+            $user_id = $v['member_id'];
+            $row = $member->select('nickname', 'avatar')->find($user_id);//昵称、头像
+            $nickname = $row['nickname'];//发布人的昵称
+            $time = format_date($v['created_at']);//发布时间
+            $nice = json_decode($v['nice_num'], true);//点赞数
+            if(!empty($nice)){//有人点赞
                 //看看用户能不能点赞
                 $is_nice = array_key_exists($data['member_id'], $nice) ? 2 : 1;
-            } else {
+                $nice_num = count($nice) ;
+            }else{
                 $is_nice = 1;//可以点赞
+                $nice_num = 0;
             }
             //评论人 评论内容
             $row2 = $comment->select('member_id', 'content')->where('to_id', $v['id'])->orderBy('created_at', 'DESC')->get();
@@ -279,15 +315,16 @@ class TopicController extends Controller
             }
             $content = json_decode($v['content'], true);//发布的内容
             //发布的图片
-            
+
             $img = json_decode($v['img_url'], true);
-
-             array_walk($img,function (&$s, $k, $prefix='www.yixitongda.com/') {
+            //加入固定前缀
+            array_walk(
+                $img,
+                function (&$s, $k, $prefix='www.yixitongda.com/') {
                     $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
-                    }
-                );
-                $imgs=$img;
-
+                }
+            );
+            $imgs=$img;
             //发布人的头像,昵称,是否是官方,发布地点,发布时间,发布的内容,图片,最新评论人的昵称,评论的内容,点赞数,评论数
             $arr['list'][] = [
                 'topic_id'=>$v['id'],//记录的id
@@ -311,13 +348,14 @@ class TopicController extends Controller
 
     /**
      * 发布话题(用户)
+     * 返回：发布的话题，发布人的信息
      */
-    public function release_topic(Request $request, Topic $topic, Subject $subject)
+    public function release_topic(Request $request, Topic $topic, Subject $subject, Member $member)
     {
         $data = $request->only('member_id', 'subject_id', 'content', 'addres', 'img1', 'img2', 'img3');
         $role = [
-            'member_id' => 'required | exists:member,id',
-            'subject_id' => 'required | exists:subject,id',
+            'member_id' => 'exists:member,id',
+            'subject_id' => 'exists:subject,id',
             'content' => 'required',
             'addres' => 'required',
             'img1' => 'required|image',
@@ -325,9 +363,7 @@ class TopicController extends Controller
             'img3' => 'nullable|image',
         ];
         $message = [
-            'member_id.required' => '用户id不能为空！',
             'member_id.exists' => '用户id非法！',
-            'subject_id.required' => '话题分类的id不能为空！',
             'subject_id.exists' => '话题分类的非法！',
             'content.required' => '动态内容不能为空！',
             'addres.required' => '发布的地点不能为空！',
@@ -386,11 +422,69 @@ class TopicController extends Controller
         //数据调整
         $data['content'] = json_encode([0 => $data['content']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $row = $subject->select('cate_name')->find($data['subject_id']);
-        $data['subjec_catename'] = $row['cate_name'];
+        $data['subjec_catename'] = $row['cate_name'];//话题分类名称
+        //查询发布者是否是官方
+        $is_admin = $member->select('is_admin')->where('id',$data['member_id'])->first();
+        if($is_admin['is_admin'] == 1){//如果是官方则lev_state=null,默认为1
+            $data['lev_state'] = null;
+        }
         $res = $topic->create($data);
         if ($res->id) {
             res(null, '发布成功');
         }
         res(null, '数据插入失败', 'fail', 100);
     }
+
+    /**
+     * 删除话题(真删除) //需要动态id,因为用户删除的只能是自己的动态,所以不考虑是否是官方
+     */
+    public function del_topic(Request $request, Topic $topic, Comment $comment)
+    {
+        $data = $request->only('act_mem_id','topic_id');
+        $role = ['topic_id' => 'exists:topic,id'];//被删除的记录的id
+        $message = ['topic_id.exists' => '请求不合法！',];
+        $validator = Validator::make($data, $role, $message);
+        if ($validator->fails()) {
+            res(null, $validator->messages()->first(), 'fail', 101);
+        }
+        $topic_coll = $topic->select('member_id','img_url')->where('id',$data['topic_id'])->first();
+        # 判断当前文章博主是否为当前用户
+        if ($topic_coll['member_id'] != $data['act_mem_id']){//不是拥有者：拒绝
+            res(null, '无权限或不存在', 'fail', 102);
+        }
+        # 如果存在图片，需要删除图片
+        if(!empty($topic_coll['img_url'])){
+            $fine_arr = json_decode( $topic_coll['img_url']);
+            //为图片拼接完整路径
+            array_walk(
+                $fine_arr,
+                function (&$s, $k, $prefix='./') {
+                    $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
+                }
+            );
+            //批量删除
+            delPics($fine_arr);
+        }
+        # 删除文章
+        $res = $topic->where('id',$data['topic_id'])->delete();
+        # 删除文章下的所有评论
+        //查询文章下的一级评论
+        $dy_cos = $comment->select('id')->where('to_id',$data['topic_id'])->get()->toArray();
+        if(!empty($dy_cos)){//不为空一一删除全部；为空不需要删除
+            $all_com = $comment->select('id','parent_id')->get()->toArray();//所有评论id及父id
+            $id_arr = $comment->getChildrenIds($all_com, $dy_cos);//该文章下的所有评论的id
+            $del_comment = $comment->whereIn('id',$id_arr)->delete();
+        }else{
+            $del_comment = true;
+        }
+        if ($res) {
+            if($del_comment){
+                res(null, '删除成功');
+            }
+            res(null, '删除成功,未删除评论');
+        }
+        res(null, '失败', 'fail', 100);
+    }
+
+
 }

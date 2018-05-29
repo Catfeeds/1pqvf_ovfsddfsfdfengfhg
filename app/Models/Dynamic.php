@@ -3,12 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Dynamic extends Model
 {
     //动态
-    use SoftDeletes;
     protected $dates = ['deleted_at'];
     protected $table = 'dynamic';
     protected $primaryKey = 'id';
@@ -20,5 +18,6 @@ class Dynamic extends Model
         // belongsTo 多对一(从属)
         return $this->belongsTo(\App\Models\Member::class,'member_id','id');
     }
+
 
 }

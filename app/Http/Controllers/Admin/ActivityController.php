@@ -486,7 +486,7 @@ class ActivityController extends Controller
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        if ($data['activity_id'] == 1) {
+        if ($data['activity_id'] == 1) {//当前活动为健康达人$health
             //当达到活动状态=达成的时候
             $res = $activity->with('actmall')->select('note', 'title', 'content', 'actMall_id', 'man_num', 'top_img_url')->where(['id' => $data['activity_id']])->first();
             $res2 = $health->select('total', 'status')->where(['member_id' => $data['member_id']])->first();
@@ -519,8 +519,7 @@ class ActivityController extends Controller
                 'status2' => $status2,//报名状态,1=已报名,2=未报名
             ];
             res($result);
-        } elseif ($data['activity_id'] == 2) {
-            //返回毅力使者
+        } elseif ($data['activity_id'] == 2) {//2代表活动为毅力使者时$perseverance
             $res = $activity->with('actmall')->select('note', 'title', 'top_img_url', 'content', 'actMall_id', 'man_num', 'actMall_num')->where(['id' => $data['activity_id']])->first();
             $res2 = $perseverance->select('total_steps', 'punch_d', 'status', 'status2')->where(['member_id' => $data['member_id']])->first();
             $time = date('Ymd', time());
@@ -583,8 +582,7 @@ class ActivityController extends Controller
                 'status2' => $status2,//打卡状态, 1=已打卡,2=未打卡
             ];
             res($data);
-        } elseif ($data['activity_id'] == 3) {
-            //返回夺旗先锋
+        } elseif ($data['activity_id'] == 3) {//3表示当前活动为夺旗先锋时 $takeFlag
             $res = $takeFlag->select('id', 'flag_num', 'status')->where(['member_id' => $data['member_id']])->first();
             //  赛事封面图,赛事简介,赛事说明,赛事标题,报名人数,剩余天数,我的旗子,奖品图片,奖品note
             $res2 = $activity->with('actmall')->select('note', 'title', 'top_img_url', 'content', 'actMall_id', 'end_at', 'start_at')->where(['id' => $data['activity_id']])->first();

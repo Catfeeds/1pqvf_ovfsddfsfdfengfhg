@@ -154,11 +154,11 @@ class SubjectController extends Controller
     }
 
     /**
-     *  话题首页
+     *  话题分类列表
      */
     public function show_list(Request $request, Subject $subject)
     {
-        $res = $subject->select('id', 'img_url', 'cate_name', 'cate_note')->get()->toArray();
+        $res = $subject->select('id', 'img_url', 'cate_name', 'cate_note')->orderBy('created_at', 'DESC')->get()->toArray();
         if (empty($res[0])) {
             res(null, '没有数据', 'success', 201);
         }

@@ -24,7 +24,6 @@ class CreateDynamicTable extends Migration
             $table->text('content',255)->comment( '内容' );
             $table->string('addres',255)->comment( '发布地点' );
             $table->timestamps();//创建时间既为发布时间
-            $table->softDeletes();
         });
     }
 

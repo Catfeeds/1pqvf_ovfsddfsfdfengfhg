@@ -31,7 +31,7 @@
                 <div class="row cl">
                     <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>商品数量：</label>
                     <div class="formControls col-xs-8 col-sm-9">
-                        <input type="text"  value="{{ $actmallInfo->act_num }}" class="input-text"  placeholder="商品数量" id="trade_num" name="trade_num">
+                        <input type="text"  value="{{ $actmallInfo->act_num }}" class="input-text"  placeholder="商品数量" id="act_num" name="act_num">
                     </div>
                 </div>
 

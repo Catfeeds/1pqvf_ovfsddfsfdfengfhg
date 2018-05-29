@@ -23,7 +23,7 @@ class HealthController extends Controller
     {
         if ($request->ajax()) {
             $data = $health->with('member')->select('id', 'member_id', 'total', 'status', 'award', 'delivery')->get();//address
-            $cnt = count($data);
+            $cnt = !empty($data) ? count($data) : 0;
             $info = [
                 'draw' => $request->get('draw'),
                 'recordsTotal' => $cnt,

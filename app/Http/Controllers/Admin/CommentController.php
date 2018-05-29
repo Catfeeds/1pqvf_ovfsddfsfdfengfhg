@@ -321,6 +321,7 @@ class CommentController extends Controller
         #2.找出数据库中评论的所有后代及本身
         $all_com = $comment->select('id','parent_id')->get()->toArray();
         $id_arr = $comment->getChildrenIds($all_com, $p_ids);
+//        dump($id_arr);
         #3.找出所有评论并排序
         if(count($id_arr)){
             $arr = $comment

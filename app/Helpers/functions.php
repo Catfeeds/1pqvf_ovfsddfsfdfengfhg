@@ -48,6 +48,18 @@
     }
 
     /**
+     * 批量删除图片
+     * 传入：$fine_arr图片完整路径的一维数组
+     */
+    function delPics($fine_arr){
+        foreach ($fine_arr as $value){
+            if(file_exists($value)){
+                unlink($value);
+            }
+        }
+    }
+
+    /**
      * 验证日期是否连续
      */
     function _mycheck($arr){
@@ -408,7 +420,7 @@
         return $arr;
     }
 
-    /*
+    /**
      * 调整经纬度长度
      */
     function adjust ( $arr ){
@@ -493,33 +505,23 @@
         return json_decode(json_encode($obj),true);
     }
 
-
-
-
     /**
-     * 递归 无限级分类
-     * @param $data 数据库中分类的所有数据
-     * @param $field_name 该表中分类的名称
-     * @param string $field_id 该表中的id字段名称，如果不填默认字段名称是id
-     * @param string $field_pid 该表的父类id字段名称，如果不填默认是parent_id
-     * @param int $pid 该表中pid的数据是从几开始,默认是从0开始
-     * @return array
+     * 新count()由于7.2不向下兼容，避免报错
+     * @param $array_or_countable
+     * @param int $mode
+     * @return int
      */
-     function getTree($data,$field_name,$field_id='id',$field_pid='parent_id',$pid=0){
-        $arr = array();
-        foreach ($data as $k=>$v){
-            if($v->$field_pid==$pid){
-                $data[$k]["_".$field_name] = $data[$k][$field_name];
-                $arr[] = $data[$k];
-                foreach ($data as $m=>$n){
-                    if($n->$field_pid == $v->$field_id){
-                        $data[$m]["_".$field_name] = '├─ '.$data[$m][$field_name];
-                        $arr[] = $data[$m];
-                    }
-                }
-            }
+    function new_count($array_or_countable,$mode = COUNT_NORMAL){
+        if(is_array($array_or_countable) || is_object($array_or_countable)){
+            return count($array_or_countable, $mode);
+            }else{            return 0;
         }
-        return $arr;
     }
 
-
+    /**
+     * 为每个数组下的每个元素加入前缀
+     */
+//    array_walk($img,function (&$s, $k, $prefix='www.yixitongda.com/') {
+//        $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
+//    }
+//    );

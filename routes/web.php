@@ -126,6 +126,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     Route::get('topic/show_list','SubjectController@show_list')->middleware('auth:api');//话题首页
     Route::get('topic/details','TopicController@details')->middleware('auth:api');//话题详情
     Route::post('topic/release_topic','TopicController@release_topic')->middleware('auth:api');//发布话题
+    Route::get('topic/del_topic','TopicController@del_topic')->middleware('auth:api');//删除话题
 
     //公共图片上传接口
     Route::post('img/uploads','AppraiseController@uploads')->middleware('auth:api');
@@ -215,7 +216,8 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     Route::post('dynamic/restore', 'DynamicController@restore');//动态-回收站-恢复
 
     //管理页后台认证  除login页面外,所有控制器进行登录防翻墙
-    Route::group(['middleware'=>'checkadmin'], function () {
+    Route::group(['middleware'=>['web','checkadmin']], function () {
+//    Route::group(['middleware'=>'web'], function () {//测试用
         // 退出登录
         Route::get('logout','IndexController@logout');
         //后台首页
@@ -242,6 +244,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
         Route::resource('intMall','IntMallController');
         //动态管理
         Route::resource('dynamic','DynamicController');
+        Route::any('dy_destroy','DynamicController@dy_destroy');
         //话题分类管理
         Route::resource('subject','SubjectController');
         //话题管理
@@ -256,7 +259,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
         Route::resource('appraise', 'AppraiseController');
         //用户评论管理
         Route::resource('comment', 'CommentController');
-        //强制删除某条评论
+        //强制删除某条评论及其回复
         Route::resource('pun_comments','CommentController@pun_comments');
         //奖章管理
         Route::resource('medal', 'MedalController');
