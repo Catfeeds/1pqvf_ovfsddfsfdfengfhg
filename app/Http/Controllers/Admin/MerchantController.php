@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Coupon;
 use App\Models\Member;
 use App\Models\Merchant;
-use App\Models\Picture;
+use App\Models\couponcategory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -28,7 +28,7 @@ class MerchantController extends Controller
     public function store(Request $request, Merchant $merchant)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => 'fail', 'msg' => '非法的请求类型'];
         }
         $data = $request->only('nickname', 'ification_id', 'address', 'img_url', 'avatar', 'labelling', 'store_image');
 
@@ -74,6 +74,7 @@ class MerchantController extends Controller
                 return ['status' => 'fail', 'msg' => '头像储存失败'];
         }
         $data['avatar'] = $res; //把得到的地址给picname存到数据库
+        //保存首页
         $res2 = uploadpic('img_url', 'uploads/img_url');//
         switch ($res2) {
             case 1:
@@ -98,7 +99,7 @@ class MerchantController extends Controller
             case 4:
                 return ['status' => 'fail', 'msg' => '店铺图储存失败'];
         }
-        $data['store_image'] = $res;
+        $data['store_image'] = $res3;
         $data['appraise_n'] = 5;
         //调整纬度
         $ak = 'fSTUrykGGBg5guFLt2RSaQpaPIZvFzPd';
@@ -124,8 +125,10 @@ class MerchantController extends Controller
     public function ajax_list(Request $request, Merchant $merchant)
     {
         if ($request->ajax()) {
-            $data = $merchant->select('id', 'labelling', 'nickname', 'ification_id', 'appraise_n', 'address', 'latitude', 'img_url', 'avatar', 'disabled_at', 'store_image')
-                ->get();
+            $data = $merchant
+                ->select('id', 'labelling', 'nickname', 'ification_id', 'appraise_n', 'address', 'latitude', 'img_url', 'avatar', 'disabled_at', 'store_image','deleted_at')
+                ->withTrashed()->get()->toArray();//包含软删除的
+//            dump($data);die();
             $cnt = count($data);
             $info = [
                 'draw' => $request->get('draw'),
@@ -146,7 +149,7 @@ class MerchantController extends Controller
     public function update(Request $request, Merchant $merchant)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => 'fail', 'msg' => '非法的请求类型'];
         }
         $data = $request->only('nickname', 'ification_id', 'address', 'img_url', 'avatar', 'labelling', 'disabled_at', 'store_image');
         $data['disabled_at'] = $data['disabled_at'] == 1 ? null : date('Y-m-d H:i:s');
@@ -248,6 +251,9 @@ class MerchantController extends Controller
                 if (!empty($data['avatar'])) {
                     unlink($data['avatar']);
                 }
+                if (!empty($data['store_image'])) {
+                    unlink($data['store_image']);
+                }
                 return ['status' => 'fail', 'msg' => '添加失败,该地址无法获得经纬度'];
             }
             $arr['lng'] = $json_data->result->location->lng;
@@ -259,19 +265,68 @@ class MerchantController extends Controller
         if ($res) {
             return ['status' => 'success', 'msg' => '更新成功'];
         } else {
-            return ['status' => 'fail', 'code' => 3, 'error' => '更新失败！'];
+            return ['status' => 'fail', 'code' => 3, 'msg' => '更新失败！'];
         }
     }
 
-    public function destroy($id)
+    /**
+     * 软删除
+     * @param $id
+     * @return array
+     * @throws \Exception
+     */
+    public function mer_disable(Request $request)
     {
+        $id = $request['id'];
+        #该商家是否有已发布的优惠券
+        $coupon_category = new CouponCategory();
+        $has_tf = $coupon_category->where('merchant_id',$id)->limit(1)->first();
+
+        if(!empty($has_tf)){
+            return ['status' => 'fail', 'msg' => '失败！请先删除该商家已发布的优惠券'];
+        }
         $merchant = new Merchant();
-        $merchant = $merchant->find($id);
-        $res = $merchant->delete();
-        if ($res) {
+        $del = $merchant->where('id',$id)->delete();
+        if ($del) {
             return ['status' => 'success'];
         } else {
-            return ['status' => 'fail', 'error' => '删除失败！'];
+            return ['status' => 'fail', 'msg' => '删除失败！'];
+        }
+    }
+
+    /**
+     * 彻底删除
+     * @param $id
+     * @return array
+     * @throws \Exception
+     */
+    public function destroy($id)
+    {
+        #该商家是否有已发布的优惠券
+        $coupon_category = new couponcategory();
+        $has_tf = $coupon_category->where('merchant_id',$id)->limit(1)->first();
+        if(!empty($has_tf)){
+            return ['status' => 'fail', 'msg' => '删除失败！请先删除该商家已发布的优惠券'];
+        }
+
+        $merchant = new Merchant();
+        $merchant = $merchant->find($id);
+        //删除该条记录
+        $res = $merchant->forceDelete();
+        if ($res) {
+            //删除商家下的所有图片
+            $pic_arr = [$merchant['img_url'],$merchant['avatar'],$merchant['store_image']];
+            array_walk(
+                $pic_arr,
+                function (&$s, $k, $prefix='./') {
+                    $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
+                }
+            );
+            //批量删除
+            delPics($pic_arr);
+            return ['status' => 'success'];
+        } else {
+            return ['status' => 'fail', 'msg' => '删除失败！'];
         }
     }
 
@@ -456,7 +511,7 @@ class MerchantController extends Controller
     /**
      *  商家详情
      */
-    public function show_merchant_content(Request $request, Merchant $merchant, Coupon $coupon, Picture $picture)
+    public function show_merchant_content(Request $request, Merchant $merchant, Coupon $coupon)
     {
         $data = $request->only('merchant_id', 'lat', 'lng');
         $role = [
@@ -485,13 +540,15 @@ class MerchantController extends Controller
         $latitude = bd_encrypt($data['lat'], $data['lng']);
         $distance = getDistance($latitude['lat'], $latitude['lng'], $res1['latitude']['lat'], $res1['latitude']['lng']);
         $arr['distance'] = $distance;
-        $res2 = $coupon->select('action', 'price', 'note', 'start_at', 'end_at')->where('member_id', null)->where('merchant_id', $data['merchant_id'])->first();
-        if (empty($res2['action'])) {
+        $res2 = $coupon->select('coupon_type', 'coupon_money', 'note', 'start_at', 'end_at')
+            ->leftJoin('coupon_category','coupon_category.id','=','coupon.cp_cate_id')
+            ->where('member_id', null)->where('merchant_id', $data['merchant_id'])->limit(1)->first()->toArray();
+        if (empty($res2['coupon_type'])) {
             res(null, '该商家的优惠券被抢完了', 'success', 201);
         }
         $arr['coupon'][] = [
-            'action' => $res2['action'],
-            'price' => number_format($res2['price'],1),
+            'action' => $res2['coupon_type'],//折扣类型
+            'price' => number_format($res2['coupon_money'],1),//格式化优惠券面额
             'note' => $res2['note'],
             'start_at' => $res2['start_at'],
             'end_at' => $res2['end_at'],

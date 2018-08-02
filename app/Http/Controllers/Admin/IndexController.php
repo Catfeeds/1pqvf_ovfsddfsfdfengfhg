@@ -75,4 +75,20 @@ class IndexController extends Controller
         return redirect()->to('admin/login')->withErrors(['退出登录成功！']);
     }
 
+    /**
+     * 用户协议
+     */
+    public function reg_protocol()
+    {
+        return view('home.index.reg_protocol');
+    }
+
+    /**
+     * 隐私政策
+     */
+    public function privacy()
+    {
+        return view('home.index.privacy');
+    }
+
 }

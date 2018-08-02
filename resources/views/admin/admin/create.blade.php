@@ -5,9 +5,9 @@
         <form action="{{ url('admin/admin')  }}" method="post"  class="form form-horizontal" id="form-admin-add">
             {{ csrf_field() }}
             <div class="row cl">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>管理员：</label>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>登录账号：</label>
                 <div class="formControls col-xs-8 col-sm-9">
-                    <input type="text" class="input-text"  placeholder="管理员名称" id="username" name="username">
+                    <input type="text" class="input-text"  placeholder="管理员账号" id="username" name="username">
                 </div>
             </div>
             <div class="row cl">
@@ -74,11 +74,11 @@
                     username:{
                         required:true,
                         minlength:2,
-                        maxlength:4
+                        maxlength:8
                     },
                     password:{
                         required:true,
-                        minlength:3,
+                        minlength:5,
                         maxlength:20
                     },
                     pwd:{

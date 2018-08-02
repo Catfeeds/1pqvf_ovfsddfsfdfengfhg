@@ -12,7 +12,7 @@ class TheDelivery extends Model
     protected $dates = ['deleted_at'];
     protected $table = 'theDelivery';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','member_id','intmall_id','delivery_time','logistics','Order','created_at'];
+    protected $fillable = ['id','order_sn','intmall_id','actmall_id','goods_amount','member_id','phone','address','zipcode','delivery_time','logistics','logistics_sn','td_status','postscript','created_at'];
 
     //积分商品发货 和用户表的关系
     function member(){

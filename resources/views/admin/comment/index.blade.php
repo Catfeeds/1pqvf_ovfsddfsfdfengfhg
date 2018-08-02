@@ -41,7 +41,7 @@
         'info':true,//分页辅助
         'searching':true,//既时搜索
         'ordering':true,//启用排序
-        "order": [[ 1, "desc" ]],//排序规则  默认下标为1的显示倒序
+        "order": [[ 0, "desc" ]],//排序规则  默认下标为1的显示倒序
         "stateSave": false,//使用状态.是否保持 默认true
         "processing": false,//是否显示数据在处理中的状态
         "serverSide": false,//是否开启服务端
@@ -71,7 +71,7 @@
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
             $(row).find('td:eq(1)').html(data.dy_id == null ? '话题':'动态');//勾选 dy=动态, to=话题
-            $(row).find('td:eq(2)').html(data.dy_id == null ? data.topic.content : data.dynamic.content);//勾选 dy=动态, to=话题
+            $(row).find('td:eq(4)').html(data.dy_id == null ? data.topic.content : data.dynamic.content);//勾选 dy=动态, to=话题
             for(var i=0;i<data.content.length;i++){
                 data.content = data.content.replace('\'','ct2rs1')
                 data.content = data.content.replace('\"','ct2rs2')

@@ -54,7 +54,7 @@
         "serverSide": false,//是否开启服务端
         //设置不需要排序的字段
         "columnDefs": [{
-            "targets": [-1,1,3,4,5,6,7],
+            "targets": [-1,1,3,4,5,6,7,8,10],
             "orderable": false
         }],
         "ajax": {
@@ -74,25 +74,26 @@
             {'data':'avatar',"defaultContent": ""},
             {'data':'store_image',"defaultContent": ""},
             {'data':'appraise_n',"defaultContent": ""},
-            {'data':'disabled_at',"defaultContent": ""},
+            {'data':'',"defaultContent": ""},
             {'data':'c',"defaultContent": ""},
         ],
         'createdRow':function ( row,data,dataIndex ) {
             var cnt = data.recordsFiltered;
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
-            $(row).find('td:eq(-2)').html(data.disabled_at < 1 ? '启用' : '禁用');
             $(row).find('td:eq(2)').html(data.ification_id == 1 ? '美食' : '娱乐');
-            $(row).find('td:eq(-4)').html(data.store_image == null ? '店铺图片找不到了' : '<img src="/'+ data.store_image +'" style="width: 100px;height: 80px;">');//z状态asset('storage/file.txt');
-
-            $(row).find('td:eq(6)').html(data.img_url == null ? '图片找不到了' : '<img src="/'+ data.img_url +'" style="width: 100px;height: 80px;">');//z状态asset('storage/file.txt');
-            $(row).find('td:eq(7)').html(data.avatar == null ? '头像找不到了' : '<img src="/'+ data.avatar +'" style="width: 100px;height: 80px;">');//z状态asset('storage/file.txt');
+            $(row).find('td:eq(-4)').html(data.store_image == null ? '店铺图片找不到了' : '<img src="/'+ data.store_image +'" style="width: 50px;height: 30px;">');
+            $(row).find('td:eq(6)').html(data.img_url == null ? '图片找不到了' : '<img src="/'+ data.img_url +'" style="width: 50px;height: 30px;">');
+            $(row).find('td:eq(7)').html(data.avatar == null ? '头像找不到了' : '<img src="/'+ data.avatar +'" style="width: 50px;height: 30px;">');
             $(row).find('td:eq(5)').html('纬度 : '+data.latitude.lat+'<br>经度 : '+data.latitude.lng);//经纬度
+            $(row).find('td:eq(10)').html(data.deleted_at == null ? '启用' : '禁用<br/>'+data.deleted_at );//经纬度
 
             //操作
-            $(row).find('td:eq(-1)').html('<a title="编辑" href="javascript:;" onclick="merchant_edit(' +
-                '\'商家编辑\',\'/admin/merchant/'+data.id+'/edit\',\''+data.id+'\')" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a> ' +
-                '<a title="删除" href="javascript:;" onclick="merchant_del(this,\''+data.id+'\')" class="ml-5" style="text-decoration:none">' +
+            $(row).find('td:eq(-1)').html(
+                '<a title="编辑" href="javascript:;" onclick="merchant_edit(' + '\'商家编辑\',\'/admin/merchant/'+data.id+'/edit\',\''+data.id+'\')" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a> ' +
+                '<a title="加入回收站" href="javascript:;" onclick="merchant_disable(this,\''+data.id+'\')" style="text-decoration:none"><i class="Hui-iconfont">&#xe706;</i></a>'
+                +
+                '<a title="彻底删除（慎用）" href="javascript:;" onclick="merchant_del(this,\''+data.id+'\')" class="ml-5" style="text-decoration:none">' +
                 '<i class="Hui-iconfont">&#xe6e2;</i></a>');
         }
     });
@@ -107,12 +108,35 @@
     }
 	/*商家-商家-删除*/
     function merchant_del(obj,id){
-        layer.confirm('商家删除须谨慎，确认要删除吗？',function(index){
+        layer.confirm('删除后不可恢复，确认要删除吗？',function(index){
             //此处请求后台程序，下方是成功后的前台处理……
             url = '/admin/merchant/'+ id;
             data = {
                 '_token':'{{ csrf_token()  }}',
                 '_method':'delete',
+            };
+            $.post(url,data,function (msg) {
+                if( msg.status != 'success' ){
+                    layer.alert(msg.msg,{
+                        icon:5,
+                        skin:'layer-ext-moon'
+                    })
+                }else{
+                    location.reload();
+                    $(obj).parents('tr').remove();
+                    layer.msg('删除成功',{icon:1,time:1000});
+                }
+            });
+        });
+    }
+    /*商家-商家-禁用*/
+    function merchant_disable(obj,id){
+        layer.confirm('确认禁用吗？',function(index){
+            //此处请求后台程序，下方是成功后的前台处理……
+            url = '/admin/merchant_disable/'+'?id='+id;
+            data = {
+                '_token':'{{ csrf_token()  }}',
+                'id':'id',
             };
             $.post(url,data,function (msg) {
                 if( msg.status != 'success' ){

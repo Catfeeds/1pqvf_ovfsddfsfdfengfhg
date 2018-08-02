@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Coupon;
 use App\Models\Member;
 use App\Models\Merchant;
-use App\Models\Picture;
+use App\Models\couponcategory;
 use App\Models\Rankings;
 use App\Models\Steps;
 use Illuminate\Http\Request;

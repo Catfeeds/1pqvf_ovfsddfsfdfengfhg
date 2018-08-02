@@ -6,7 +6,7 @@ use App\Models\Appraise;
 use App\Models\Coupon;
 use App\Models\Member;
 use App\Models\Merchant;
-use App\Models\Picture;
+use App\Models\couponcategory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
@@ -146,16 +146,16 @@ class AppraiseController extends Controller
     /**
      *商家评价-> 未评价
      */
-    public function no_evaluation(Request $request, Merchant $merchant, Picture $picture, Member $member, Coupon $coupon, Appraise $appraise)
+    public function no_evaluation(Request $request, Coupon $coupon, Appraise $appraise)
     {
         $data = $request->only('member_id', 'lat', 'lng');
         $role = [
-            'member_id' => 'required',
+            'member_id' => 'exists:coupon,member_id',
             'lat' => 'required',
             'lng' => 'required'
         ];
         $message = [
-            'member_id.required' => '用户id不能为空！',
+            'member_id.exists' => '该用户还没获得任何优惠券',
             'lat.required' => '北纬不能为空！',
             'lng.required' => '东经不能为空！',
         ];
@@ -164,44 +164,47 @@ class AppraiseController extends Controller
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        $res1 = $member->select('coupon_id')->find($data['member_id']);
-        if (empty($res1['coupon_id'])) {
-            res(null, '该用户还没获得任何优惠券', 'fail', 201);
-        }
-        //根据用户拥有的优惠券字段,找出对应的已经使用的优惠券
-//        $res2 = $coupon->select(DB::Raw('DISTINCT(merchant_id)'))->whereIn('id',$res1['coupon_id'])->where('status',2)->get(); //可以,但是查出来的不是所有的
-        $res2 = $coupon->select('merchant_id')->whereIn('id', $res1['coupon_id'])->where('status', 2)->groupBy('merchant_id')->get();//这条最棒,关闭了严格模式
+        #找出当前用户已使用的优惠券，找出对应的商家 ,合并相同商家
+        $res2 = $coupon
+            ->where('member_id', $data['member_id'])
+            ->where('status', 2)
+            ->select('coupon.id','coupon.member_id','coupon_category.merchant_id','merchant.store_image','merchant.nickname','merchant.store_image','merchant.labelling','merchant.latitude')
+            ->leftjoin('coupon_category','coupon_category.id','=','coupon.cp_cate_id')
+            ->leftjoin('merchant','merchant.id','=','coupon_category.merchant_id')
+            ->groupBy('merchant_id')
+            ->get()->toArray();
+
         if (empty($res2[0])) {
             res(null, '用户还没使用过任何优惠券', 'fail', 201);
         }
+//        dump($res2);die();
+
+        # 查询是否有符合条件的数据 ['mer_id', $v]  ['mem_id', $data['member_id']]
+        $arr_mer = [];//接取为评论的商家信息
         foreach ($res2 as $key => $val) {
-            $arr[] = $val['merchant_id'];
-        }
-        foreach ($arr as $k => $v) {
-            $res = $appraise->where('mer_id', $v)->where('mem_id', $data['member_id'])->select('id')->first();
-            if (!empty($res['id'])) {
-                //此商家已经评价过了
+            $res = $appraise->where('mer_id', $res2[$key]['merchant_id'])->where('mem_id', $res2[$key]['member_id'])->select('id')->first();//判断是否存在评论
+            if($res){//有表示，已经评论了
                 continue;
+            }else{//没有表示未评论该商家
+                $arr_mer[] = $val;
             }
-            $arr2[] = $v;
         }
-        if (empty($arr2)) {
+        if (empty($arr_mer)) {
             //没有可以评价的了
             res(null, '没有可以评价的商家了', 'fail', 201);
         }
-        //找出这些商家的封面图,昵称,标签,id,经纬度,
-        $res = $merchant->select('store_image', 'nickname', 'labelling', 'id', 'latitude')->whereIn('id', $arr2)->get();
-        $latitude = bd_encrypt($data['lat'], $data['lng']);
-        $arr = [];
-        foreach ($res as $k => $v) {
+        $arr = [];//接取调整后的数据
+        $latitude = bd_encrypt($data['lat'], $data['lng']);//高德转百度
+        foreach ($arr_mer as $k => $v) {
             //经纬度换算为距离
-            $distance = getDistance($latitude['lat'], $latitude['lng'], $v['latitude']['lat'], $v['latitude']['lng']);
+            $distance = getDistance($latitude['lat'], $latitude['lng'], json_decode($v['latitude'],true)['lat'], json_decode($v['latitude'],true)['lng']);//当前距离
             $arr[] = [
-                'merchant_id' => $v['id'],//id
+                'merchant_id' => $v['merchant_id'],//id
                 'store_image' => $request->server('HTTP_HOST') . '/' . $v['store_image'],//店铺图片
                 'nickname' => $v['nickname'],//昵称
                 'distance' => $distance,//距离(米)
                 'labelling' => $v['labelling'],//标签
+//                'member_id' => $v['member_id'],
             ];
         }
         res($arr);
@@ -228,7 +231,7 @@ class AppraiseController extends Controller
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        //找出评价的星级,商家的id
+        # 评价列表找出已评论的记录
         $res1 = $appraise->select('mer_id', 'appraise')->where('mem_id', $data['member_id'])->get();
         if (empty($res1[0])) {
             res(null, '用户还没有评价过的商家', 'success', 201);
@@ -253,7 +256,7 @@ class AppraiseController extends Controller
     /**
      * 评价页面(详情)
      */
-    public function show_evaluation(Request $request, Merchant $merchant, Picture $picture, Member $member)
+    public function show_evaluation(Request $request, Merchant $merchant, CouponCategory $coupon_category, Member $member)
     {
         $data = $request->only('merchant_id', 'member_id');
         $role = [
@@ -271,7 +274,7 @@ class AppraiseController extends Controller
         }
         $res1 = $merchant->select('avatar', 'img_url', 'address', 'nickname','appraise_n')->find($data['merchant_id']);
         //找出当前商家,拥有几种优惠券(有多少种优惠券图片,就有多少个活动)
-        $num = count($picture->select('id')->where('merchant_id', $data['merchant_id'])->get());
+        $num = count($coupon_category->select('id')->where('merchant_id', $data['merchant_id'])->get());
         //再查看用户是否关注了此商家
         $res2 = $member->select('merchant_id')->find($data['member_id']);
         $is_collection = 2;//没有收藏

@@ -32,7 +32,7 @@ class Kernel extends HttpKernel
             \Illuminate\Session\Middleware\StartSession::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,//注释此行，关闭csrf功能
+//            \App\Http\Middleware\VerifyCsrfToken::class,//注释此行，关闭csrf功能
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 

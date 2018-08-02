@@ -59,12 +59,12 @@
                         }else {
                             for(var i=0;i<data.couponInfo.length;i++){
                                 var danwei = '';
-                                if(data.couponInfo[i].action == 1){
+                                if(data.couponInfo[i].coupon_type == 1){
                                     danwei += '元';
                                 }else{
                                     danwei += '折';
                                 }
-                                $("#coupon_id").append("<option value='"+data.couponInfo[i].id+"'>"+data.couponInfo[i].merchant.nickname+':'+data.couponInfo[i].price+ danwei +"</option>");
+                                $("#coupon_id").append("<option value='"+data.couponInfo[i].id+"'>"+data.couponInfo[i].id+':'+data.couponInfo[i].nickname+data.couponInfo[i].coupon_money+ danwei+'　有效期：'+data.couponInfo[i].start_at+'至'+data.couponInfo[i].end_at+"</option>");
                                 danwei = '';
                             }
                         }
@@ -85,12 +85,12 @@
                         }else {
                             for(var i=0;i<data.couponInfo.length;i++){
                                 var danwei = '';
-                                if(data.couponInfo[i].action == 1){
+                                if(data.couponInfo[i].coupon_type == 1){
                                     danwei += '元';
                                 }else{
                                     danwei += '折';
                                 }
-                                $("#coupon_id").append("<option value='"+data.couponInfo[i].id+"'>"+data.couponInfo[i].merchant.nickname+':'+data.couponInfo[i].price+ danwei +"</option>");
+                                $("#coupon_id").append("<option value='"+data.couponInfo[i].id+"'>"+data.couponInfo[i].id+':'+data.couponInfo[i].nickname+data.couponInfo[i].coupon_money+ danwei+'　有效期：'+data.couponInfo[i].start_at+'至'+data.couponInfo[i].end_at+"</option>");
                                 danwei = '';
                             }
                         }

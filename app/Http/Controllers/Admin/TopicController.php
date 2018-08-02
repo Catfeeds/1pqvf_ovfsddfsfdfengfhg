@@ -10,6 +10,7 @@ use App\Models\Topic;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use function PHPSTORM_META\elementType;
 use Validator;
 
 class TopicController extends Controller
@@ -215,7 +216,7 @@ class TopicController extends Controller
         $topic_coll = obj_arr($topic_coll);//强制转数组
         # 如果存在图片，需要删除图片
         if(!empty($topic_coll['img_url'])){
-            $fine_arr = json_decode( $topic_coll['img_url']);
+            $fine_arr = $topic_coll['img_url'];
             //为图片拼接完整路径
             array_walk(
                 $fine_arr,
@@ -271,7 +272,7 @@ class TopicController extends Controller
         $res = $subject->select('read_num')->find($data['subject_id']);
         $read_num = empty($res['read_num']) ? 0 : $res['read_num'];//阅读数
         $upd = $subject->where('id', $data['subject_id'])->update(['read_num' => $read_num + 1]);//更新下阅读数
-        $res2 = $topic->select('id', 'lev_state', 'member_id', 'nice_num', 'content', 'img_url', 'created_at', 'addres')->orderBy('created_at', 'DESC')->where('subject_id', $data['subject_id'])->get()->toArray();
+        $res2 = $topic->select('id', 'lev_state', 'member_id', 'nice_num', 'content', 'img_url', 'created_at', 'addres')->orderBy('created_at', 'DESC')->where('subject_id', $data['subject_id'])->get();
         $num = empty($res2[0]) ? false : count($res2);//该话题总条数:空为false
         $arr['read_num'] = $read_num;//已阅读数
         if ($num === false) {
@@ -292,7 +293,7 @@ class TopicController extends Controller
             $row = $member->select('nickname', 'avatar')->find($user_id);//昵称、头像
             $nickname = $row['nickname'];//发布人的昵称
             $time = format_date($v['created_at']);//发布时间
-            $nice = json_decode($v['nice_num'], true);//点赞数
+            $nice = $v['nice_num'];//点赞数
             if(!empty($nice)){//有人点赞
                 //看看用户能不能点赞
                 $is_nice = array_key_exists($data['member_id'], $nice) ? 2 : 1;
@@ -302,29 +303,22 @@ class TopicController extends Controller
                 $nice_num = 0;
             }
             //评论人 评论内容
-            $row2 = $comment->select('member_id', 'content')->where('to_id', $v['id'])->orderBy('created_at', 'DESC')->get();
-            if (empty($row2[0])) {
-                $comment_nickname = null; //最新评论人
-                $comment_content = null;  //最新评论内容
+            $row2 = $comment
+                ->leftjoin('member','member.id','=','comment.member_id')
+                ->select('comment.member_id', 'comment.content','member.nickname','comment.created_at')->where('to_id', $v['id'])->orderBy('comment.id', 'DESC')->get();//一级评论
+            $comments_num =  $row2->count();
+            if ($comments_num == 0) {//没有评论
+                $comment_arr = ['nickname'=>null,'content'=>null,'member_id'=>null,'created_at'=>null];
                 $comment_num = 0;//评论数量
-            } else {
-                $row3 = $member->select('nickname')->find($row2[0]['member_id']);
-                $comment_nickname = $row3['nickname'];
-                $comment_content = $row2[0]['content'];
+            } elseif($comments_num <= 3) {//有评论小于等于三
+                $comment_arr = obj_arr($row2);
+                $comment_num = count($row2);//评论数量
+            } else{
+                $comment_arr =  array_slice(obj_arr($row2),0,3);
                 $comment_num = count($row2);//评论数量
             }
-            $content = json_decode($v['content'], true);//发布的内容
             //发布的图片
-
-            $img = json_decode($v['img_url'], true);
-            //加入固定前缀
-            array_walk(
-                $img,
-                function (&$s, $k, $prefix='www.yixitongda.com/') {
-                    $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
-                }
-            );
-            $imgs=$img;
+            $imgs = empty($v['img_url']) ? null : add_arr_prefix('url_prefix',$v['img_url']);
             //发布人的头像,昵称,是否是官方,发布地点,发布时间,发布的内容,图片,最新评论人的昵称,评论的内容,点赞数,评论数
             $arr['list'][] = [
                 'topic_id'=>$v['id'],//记录的id
@@ -333,13 +327,12 @@ class TopicController extends Controller
                 'is_admin' => $is_admin,//是否是管理员 1=是管理(官方) 2=不是
                 'address' => $v['addres'],//发布的地点
                 'release_time' => $time,//发布的时间
-                'release_content' => $content[0],//发布的内容
+                'release_content' => $v['content'][0],//发布的内容
                 'release_img_url' => $imgs,//发布的图片
-                'comment_nickname' => $comment_nickname,//评论人的昵称
-                'comment_content' => $comment_content,//评论人的内容
                 'nice_num' => $nice_num,//点赞数
                 'is_nice' => $is_nice,//是否可以点赞 1=可以点赞 2=不可以
                 'comment_num' => $comment_num,//评论数
+                'comments' => $comment_arr,
             ];
         }
         // res(dump($arr));
@@ -441,8 +434,8 @@ class TopicController extends Controller
     public function del_topic(Request $request, Topic $topic, Comment $comment)
     {
         $data = $request->only('act_mem_id','topic_id');
-        $role = ['topic_id' => 'exists:topic,id'];//被删除的记录的id
-        $message = ['topic_id.exists' => '请求不合法！',];
+        $role = ['topic_id' => 'exists:topic,id','act_mem_id' => 'required' ];//被删除的记录的id
+        $message = ['topic_id.exists' => '请求不合法！','act_mem_id.required' => '当前用户不能为空'];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
@@ -486,5 +479,40 @@ class TopicController extends Controller
         res(null, '失败', 'fail', 100);
     }
 
+    /**
+     * 查询单个话题
+     */
+    function hot_topic(Request $request, Topic $topic, Member $member)
+    {
+        $data = $request->only('act_mem_id','topic_id');
+        $role = ['topic_id' => 'required','act_mem_id' => 'required' ];//被删除的记录的id
+        $message = ['topic_id.required' => '请求不合法！','act_mem_id.required' => '当前用户不能为空'];
+        $validator = Validator::make($data, $role, $message);
+        if ($validator->fails()) {
+            res(null, $validator->messages()->first(), 'fail', 101);
+        }
+        $topic_info = $topic->select('id','member_id','subject_id','subjec_catename','nice_num','content','img_url','addres','created_at')->where('id',$data['topic_id'])->first()->toArray();
+        if(empty($topic_info)){
+            res(null, '不存在该话题', 'fail', 101);
+        }else{
+            $topic_info['img_url'] =  add_arr_prefix('url_prefix',$topic_info['img_url']);//添加图片url
+            $topic_info['created_at'] = format_date($topic_info['created_at']);//多久之前
+            if(!empty($topic_info['nice_num'])){
+                $nice_num = count($topic_info['nice_num']);
+                $nic_mes = $member->select('id','nickname','avatar')->whereIn('id',array_keys($topic_info['nice_num']))->get();
+                foreach ($nic_mes as $k => $v){
+                    $nic_mes[$k]['avatar'] = config('app.url').$v['avatar'];
+                }
+            }else{
+                $nice_num = 0;
+                $nic_mes = null;
+            }
+            $topic_info['nice_num'] =  $nice_num;//点赞总数
+            $topic_info['nic_mems'] = $nic_mes;//所有点赞人信息
+
+            res($topic_info);
+        }
+
+    }
 
 }

@@ -2,98 +2,92 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\CnLatLngBag;
 use App\Models\Coupon;
 use App\Models\Member;
 use App\Models\Merchant;
-use App\Models\Picture;
+use App\Models\couponcategory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
-use Illuminate\Support\Facades\Redis;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 
 class CouponController extends Controller
 {
-
+    /**
+     * 优惠券展示页
+     */
     public function index()
     {
         return view('admin.coupon.index');
     }
 
-    public function create(Request $request, Merchant $merchant, Picture $picture)
+    /**
+     * 优惠券新增页
+     */
+    public function create(Request $request, Merchant $merchant, CouponCategory $coupon_category)
     {
-        $data['merchantInfo'] = $merchant->select('id', 'nickname')->get();
-        $data['pictureInfo'] = $picture->select('id', 'action', 'merchant_id', 'price')->get();
+        $data['merchantInfo'] = $merchant->select('id', 'nickname')->get();//商家信息
+        $data['pictureInfo'] = $coupon_category->select('id', 'coupon_type','coupon_name','coupon_money', 'merchant_id', 'send_start_at','send_end_at')->get();//商家拥有的优惠券
         return view('admin.coupon.create', $data);
     }
 
-    public function store(Request $request, Coupon $coupon)
+    /**
+     * 新增优惠券
+     * type是否有效期（0有；）  cr_type生产优惠券方式（0区县范围；1定点周边；）
+     */
+    public function store(Request $request, Coupon $coupon, CouponCategory $coupon_category)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => 'fail', 'msg' => '非法的请求类型'];
         }
-        $data = $request->only('merchant_id', 'note', 'type', 'start_at', 'end_at', 'action', 'price', 'picture_id', 'cr_type', 'address1', 'address2');//latitude经纬度需要通过百度地图查询
+        $data = $request->only('cp_cate_id','cr_type','address1','address2','start_at','end_at','note');
         $role = [
-            'merchant_id' => 'required | exists:merchant,id',
-            'type' => 'required',
+            'cp_cate_id' => 'exists:coupon_category,id',
+            'cr_type' => 'required',
+            'address1' => 'required_if:cr_type,2',
+            'address2' => 'required_if:cr_type,1',
             'start_at' => 'required|date',
             'end_at' => 'required|after_or_equal:start_at',
-            'action' => 'required',
-            'price' => 'required|numeric',
-            'picture_id' => 'required | numeric | exists:picture,id',
-            'cr_type' => 'required',
             'note' => 'required',
         ];
-
         $message = [
-            'merchant_id.required' => '所属商家不能为空！',
-            'merchant_id.exists' => '所属商家非法！',
-            'type.required' => '优惠券类型不能为空！',
+            'cp_cate_id.exists' => '优惠券类别错误！',
+            'cr_type.required' => '生成方式不能为空！',
+            'address1.required_if' => '区/县地址不能为空',
+            'address2.required_if' => '定点地址不能为空',
             'start_at.required'=>'开始时间不能为空',
             'start_at.date' => '开始时间类型错误！',
             'end_at.required'=>'结束时间不能为空',
             'end_at.after_or_equal' => '结束时间必须是开始时间之后！',
-            'action.required' => '优惠方式不能为空！',
-            'price.required' => '优惠价格不能为空！',
-            'price.numeric' => '优惠价格不合法！',
-            'picture_id.required' => '优惠券图片错误！',
-            'picture_id.exists' => '优惠券图片非法！',
-            'picture_id.numeric' => '优惠券图片错误！',
-            'cr_type.required' => '生成地区类型不能为空！',
             'note.required' => '描述不能为空！',
         ];
         $validator = Validator::make($data, $role, $message);
-        //否则,则验证上传的excel表是否合法,录入信息
-        //如果验证失败,返回错误信息
         if ($validator->fails()) {
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
-        //判断是否无期限
-        if (!$data['type'] == 1) {
-            $data['start_at'] = date('Y-m-d H:i:s', strtotime($data['start_at']));
-            $data['end_at'] = date('Y-m-d H:i:s', strtotime($data['end_at']));
-        } else {
-            unset($data['start_at']);
-            unset($data['end_at']);
-            //获取时,+7天为结束时间
+        # 查找该优惠券
+        $coupon_category = $coupon_category->select('send_start_at','send_end_at','send_num','picture_url','deduction_url')
+            ->where('category_status',1)
+            ->where('id',$data['cp_cate_id'])->first();
+        # 优惠券效期strtotime($data['start_at'])时间戳
+        $max_at = strtotime( $coupon_category['send_end_at']);//最大效期
+        $min_at = strtotime( $coupon_category['send_start_at']);//最小效期
+        if(is_in_range($min_at,strtotime($data['start_at']),$max_at) && is_in_range($min_at,strtotime($data['end_at']),$max_at)){
+            $data['start_at'] = date('Y-m-d H:i:s', strtotime($data['start_at']));//开始时间
+            $data['end_at'] = date('Y-m-d H:i:s', strtotime($data['end_at']));//结束时间
+        }else{
+            return ['status' => 'fail', 'msg' => '开始或者结束时间不正确'];
         }
-        if ($data['cr_type'] == 1) {
-            //按商家,删除区域
+        # 生成坐标
+        if ($data['cr_type'] == 1) {//按商家,删除按区域的地址
             $type = 1;
-            if (empty($data['address2'])) {
-                return ['status' => 'fail', 'msg' => '生成地区不能为空'];
-            }
-            //根据address2(获取)
             $data['address'] = $data['address2'];
         } else {
             $type = 2;
-            if (empty($data['address1'])) {
-                return ['status' => 'fail', 'msg' => '生成地区不能为空'];
-            }
             $data['address'] = $data['address1'];
         }
-        $latitude = $this->get_latitude($type, $data['address'], 1);
+        $latitude = get_latitude($type, $data['address'], 1);
         switch ($latitude) {
             case 2:
                 return ['status' => 'fail', 'msg' => '该地址不存在或网络异常,请稍后再试'];
@@ -106,26 +100,24 @@ class CouponController extends Controller
                 break;
         }
         //如果唯一,则格式化
-        $data['latitude'] = $latitude[0];//json_encode($latitude,JSON_UNESCAPED_UNICODE);
+//        $data['lat'] = upd_str_long($latitude[0]['lat']);
+//        $data['lng'] = upd_str_long($latitude[0]['lng']);
         unset($data['address1']);
         unset($data['address2']);
-        //调整时间
-        if (!empty($data['start_at'])) {
-            if ($data['start_at'] == '1970-01-01 00:00:00' || $data['end_at'] == '1970-01-01 00:00:00') {
-                return ['status' => 'fail', 'msg' => '时间格式不合法'];
-            }
-        }
-        //生成优惠券编号  后期优惠券编号要拼接区号
-        $code = $this->code();
-        $data['cp_id'] = $code;
-        $data['status'] = 1;
         //根据最后的经纬度,将所在地区重新调整
         $ak = 'fSTUrykGGBg5guFLt2RSaQpaPIZvFzPd';
-        $url = "http://api.map.baidu.com/geocoder/v2/?location={$data['latitude']['lat']},{$data['latitude']['lng']}&output=json&pois=0&ak={$ak}";
+        $url = "http://api.map.baidu.com/geocoder/v2/?location={$data['lat']},{$data['lng']}&output=json&pois=0&ak={$ak}";
         $addr = file_get_contents($url);
         $addr = json_decode($addr, true);
-        $data['address'] = $addr['result']['addressComponent']['district'];
-        $data['latitude'] = adjust($data['latitude']);
+//        dump($addr['result']['addressComponent']['adcode']);die();
+        $data['address'] = $addr['result']['addressComponent']['district'];//所属区域
+        $data['adcode'] = $addr['result']['addressComponent']['adcode'];//百度所属代号
+        $data['province'] = $addr['result']['addressComponent']['province'];
+        $data['city'] = $addr['result']['addressComponent']['city'];
+        # 生成唯一排序编码
+        $data['uuid'] = create_unique_max_8bit_int(1);//9位数，10亿量级
+        # 生成优惠券编号  时间+排序编码
+        $data['cp_number'] = date('Ymd').$data['adcode'].sprintf("%09d", $data['uuid']);
         $res = $coupon->create($data);
         if ($res->id) {
             return ['status' => 'success', 'msg' => '添加成功'];
@@ -134,369 +126,157 @@ class CouponController extends Controller
     }
 
     /**
-     *  获取随机经纬度
-     */
-    public function get_latitude($type, $address, $n)
-    {
-        if ($type == 1) {
-            $latitude = Latitude_and_longitude($address, $n);
-            switch ($latitude) {
-                case 2:
-                    return 2;;
-                    break;
-                case 3:
-                    return 3;
-                    break;
-                case 4:
-                    return 4;
-                    break;
-            }
-        } else {
-            $latitude = Obtain_a_single_warp($address, $n);
-        }
-        return $latitude;
-    }
-
-    /*
-     * 优惠券编号
-     */
-    private function code()
-    {
-        $code = date('YmdHis');
-        $res = Redis::get('code_number');
-        if ($res && $res < 999999) {
-            $number = ++$res;
-        } else {
-            $number = 1;
-        }
-        Redis::set('code_number', $number);
-        $number = str_pad($number, 6, '0', STR_PAD_LEFT);
-        return $code . $number;
-    }
-
-    /**
      *  批量添加优惠券
      */
-    public function creates(Request $request, Merchant $merchant, Picture $picture)
+    public function creates(Request $request, Merchant $merchant, couponcategory $coupon_category , CnLatLngBag $cn_lat_lng_bag)
     {
-        $data['merchantInfo'] = $merchant->select('id', 'nickname')->get();
-        //找出目前所有商家,提供手工批量录入,和excel导入
-        $data['pictureInfo'] = $picture->select('id', 'action', 'merchant_id', 'price')->get();
+        $data['merchantInfo'] = $merchant->select('id', 'nickname')->get();//商家信息
+        $data['pictureInfo'] = $coupon_category->select('id', 'coupon_type','coupon_name','coupon_money', 'merchant_id', 'send_start_at','send_end_at')->get();//商家拥有的优惠券
+        $data['CnLatLngBagInfo'] = $cn_lat_lng_bag->where('city','深圳市')->count();//坐标总数
         return view('admin.coupon.creates', $data);
     }
 
     /**
      * 批量优惠券入库
+     * type是否有效期（0有；）  cr_type生产优惠券方式（0区县范围；1定点周边；）
      */
-    public function stores(Request $request, Coupon $coupon, Excel $excel)
+    public function stores(Request $request, Coupon $coupon, CouponCategory $coupon_category,CnLatLngBag $cn_lat_lng_bag)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => 'fail', 'msg' => '非法的请求类型'];
         }
-        $data = $request->only('type3', 'note', 'note2', 'editorValue', 'number', 'excel', 'merchant_id', 'type', 'start_at', 'end_at', 'action', 'price', 'picture_id', 'cr_type', 'address1', 'address2', 'address3', 'address4', 'merchant_id2', 'picture_id2', 'type2', 'start_at2', 'end_at2', 'action2', 'price2');
-        //如果选择的是手工录入
-        if ($data['type3'] == 1) {
-            $role = [
-                'merchant_id' => 'required | exists:merchant,id',
-                'type' => 'required',
-                'start_at' => 'required|date',
-                'end_at' => 'required|after_or_equal:start_at',
-                'action' => 'required',
-                'price' => 'required|numeric',
-                'picture_id' => 'required | numeric | exists:picture,id',
-                'cr_type' => 'required',
-                'note' => 'required',
-            ];
+        $data = $request->only('cp_cate_id','cr_type','address1','address2','start_at','end_at','note','create_num');
 
-            $message = [
-                'merchant_id.required' => '所属商家不能为空！',
-                'merchant_id.exists' => '所属商家非法！',
-                'type.required' => '优惠券类型不能为空！',
-                'start_at.date' => '开始时间类型错误！',
-                'start_at.required'=>'开始时间不能为空',
-                'end_at.required'=>'结束时间不能为空',
-                'end_at.after_or_equal' => '结束时间必须是开始时间之后！',
-                'action.required' => '优惠方式不能为空！',
-                'price.required' => '优惠价格不能为空！',
-                'price.numeric' => '优惠价格不合法！',
-                'picture_id.required' => '优惠券图片错误！',
-                'picture_id.exists' => '优惠券图片非法！',
-                'picture_id.numeric' => '优惠券图片错误！',
-                'cr_type.required' => '生成类型不能为空！',
-                'note.required' => '描述不能为空！',
-            ];
-            $validator = Validator::make($data, $role, $message);
-            //否则,则验证上传的excel表是否合法,录入信息
-            //如果验证失败,返回错误信息
-            if ($validator->fails()) {
-                return ['status' => 'fail', 'msg' => $validator->messages()->first()];
-            }
-            //判断是否无期限
-            if (!$data['type'] == 1) {
-                $data['start_at'] = date('Y-m-d H:i:s', strtotime($data['start_at']));
-                $data['end_at'] = date('Y-m-d H:i:s', strtotime($data['end_at']));
-            } else {
-                unset($data['start_at']);
-                unset($data['end_at']);
-                //获取时,+7天为结束时间
-            }
-            if ($data['cr_type'] == 1) {
-                //按商家,删除区域
-                $type = 1;
-                if (empty($data['address2'])) {
-                    return ['status' => 'fail', 'msg' => '生成地区不能为空'];
-                }
-                $data['address'] = $data['address2'];
-            } else {
-                $type = 2;
-                if (empty($data['address1'])) {
-                    return ['status' => 'fail', 'msg' => '生成地区不能为空'];
-                }
-                $data['address'] = $data['address1'];
-            }
-            unset($data['address1']);
-            unset($data['address2']);
-            //调整时间
-            if (!empty($data['start_at'])) {
-                if ($data['start_at'] == '1970-01-01 00:00:00' || $data['end_at'] == '1970-01-01 00:00:00') {
-                    return ['status' => 'fail', 'msg' => '时间格式不合法'];
-                }
-            }
-            //使用说明
-            //对富文本进行处理
-            $data['editorValue'] = str_replace('<p>', '', $data['editorValue']);
-            $data['editorValue'] = str_replace('&nbsp;', '', $data['editorValue']);
-            $data['editorValue'] = str_replace('<br/>', '</p>', $data['editorValue']);
-            $data['editorValue'] = str_replace(' ', '', $data['editorValue']);
-            $data['editorValue'] = explode('</p>', $data['editorValue']);
-            if (count($data['editorValue'])) {
-                foreach ($data['editorValue'] as $k => $v) {
-                    if ($v == '' || $v == ' ') {
-                        unset($data['editorValue'][$k]);
-                    }
-                }
-            }
-            $data['content'] = json_encode($data['editorValue'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            //生成优惠券编号
-            $data['status'] = 1;
-            $number = $data['number'] < 1 ? 1 : $data['number'];
-            //生成经纬度
-            $latitude = $this->get_latitude($type, $data['address'], $data['number']);
-            switch ($latitude) {
-                case 2:
-                    return ['status' => 'fail', 'msg' => '该地址不存在或网络异常,请稍后再试'];
-                    break;
-                case 3:
-                    return ['status' => 'fail', 'msg' => '该地区所标注为区县,请选择以区域生成类型'];
-                    break;
-                case 4:
-                    return ['status' => 'fail', 'msg' => '该地址不存在'];
-                    break;
-            }
-            $ak = 'fSTUrykGGBg5guFLt2RSaQpaPIZvFzPd';
-            for ($i = 0; $i < $number; $i++) {
-                $code = $this->code();
-                $data['cp_id'] = $code;
-                $data['latitude'] = $latitude[$i];
-
-                //根据最后的经纬度,将所在地区重新调整
-                if ($data['cr_type'] == 1) {
-                    $url = "http://api.map.baidu.com/geocoder/v2/?location={$data['latitude']['lat']},{$data['latitude']['lng']}&output=json&pois=0&ak={$ak}";
-                    $addr = file_get_contents($url);
-                    $addr = json_decode($addr, true);
-                    $data['address'] = $addr['result']['addressComponent']['district'];
-                }
-                //调整经纬度长度
-                $data['latitude'] = adjust($data['latitude']);
-                $res = $coupon->create($data);
-            }
-            if ($res->id) {
-                return ['status' => 'success', 'msg' => '添加成功'];
-            }
-            return ['status' => 'fail', 'msg' => '添加失败'];
-        } else {
-            $role = [
-                'excel' => 'required',
-                'merchant_id2' => 'required',
-                'type2' => 'required',
-                'start_at2' => 'nullable|date',
-                'end_at2' => 'nullable|after_or_equal:start_at',
-                'action2' => 'required',
-                'price2' => 'required|numeric',
-                'picture_id2' => 'required|numeric',
-                'address3' => 'required',
-                'address4' => 'required',
-                'note2' => 'required',
-            ];
-
-            $message = [
-                'excel.required' => '表格不能为空！',
-                'merchant_id2.required' => '所属商家不能为空！',
-                'type2.required' => '优惠券类型不能为空！',
-                'start_at2.date' => '开始时间类型错误！',
-                'end_at2.after_or_equal' => '结束时间必须是开始时间之后！',
-                'action2.required' => '优惠方式不能为空！',
-                'price2.required' => '优惠价格不能为空！',
-                'price2.numeric' => '优惠价格不合法！',
-                'picture_id2.required' => '优惠券图片错误！',
-                'picture_id2.numeric' => '优惠券图片错误！',
-                'address3.required' => '生成地区不能为空！',
-                'address4.required' => '生成区域不能为空！',
-                'note2.required' => '描述不能为空！',
-            ];
-            $validator = Validator::make($data, $role, $message);
-            //否则,则验证上传的excel表是否合法,录入信息
-            //如果验证失败,返回错误信息
-            if ($validator->fails()) {
-                return ['status' => 'fail', 'msg' => $validator->messages()->first()];
-            }
-
-            //判断是否无期限
-            if (!$data['type'] == 1) {
-                $data['start_at'] = date('Y-m-d H:i:s', strtotime($data['start_at']));
-                $data['end_at'] = date('Y-m-d H:i:s', strtotime($data['end_at']));
-            } else {
-                unset($data['start_at']);
-                unset($data['end_at']);
-                //获取时,+7天为结束时间
-            }
-            //调整时间
-            if (!empty($data['start_at'])) {
-                if ($data['start_at'] == '1970-01-01 00:00:00' || $data['end_at'] == '1970-01-01 00:00:00') {
-                    return ['status' => 'fail', 'msg' => '时间格式不合法'];
-                }
-            }
-            //数据调整
-            $data2['status'] = 1;
-            $data2['merchant_id'] = $data['merchant_id2'];
-            $data2['type'] = $data['type2'];
-            $data2['start_at'] = $data['start_at2'];
-            $data2['end_at'] = $data['end_at2'];
-            $data2['action'] = $data['action2'];
-            $data2['price'] = $data['price2'];
-            $data2['picture_id'] = $data['picture_id2'];
-            $data2['address'] = $data['address4'];
-            $data2['note'] = $data['note2'];
-            //对富文本进行处理
-            $data['editorValue'] = str_replace('<p>', '', $data['editorValue']);
-            $data['editorValue'] = str_replace('&nbsp;', '', $data['editorValue']);
-            $data['editorValue'] = str_replace('<br/>', '</p>', $data['editorValue']);
-            $data['editorValue'] = str_replace(' ', '', $data['editorValue']);
-            $data['editorValue'] = explode('</p>', $data['editorValue']);
-            if (count($data['editorValue'])) {
-                foreach ($data['editorValue'] as $k => $v) {
-                    if ($v == '' || $v == ' ') {
-                        unset($data['editorValue'][$k]);
-                    }
-                }
-            }
-            $data2['content'] = json_encode($data['editorValue'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            $data2['excel'] = $data['excel'];
-            //验证excel
-            $res = $this->Importexcel($data2['excel']);//
-            $x = count($res);//要生成的数量(excel中)
-            $one = ceil($x / 2);
-            $to = $x - $one;
-            $latitude = $this->get_latitude(1, $data['address3'], $one);
-            switch ($latitude) {
-                case 2:
-                    return ['status' => 'fail', 'msg' => '该地址不存在或网络异常,请稍后再试'];
-                    break;
-                case 3:
-                    return ['status' => 'fail', 'msg' => '该地区所标注为区县,请选择以区域生成类型'];
-                    break;
-                case 4:
-                    return ['status' => 'fail', 'msg' => '该地址不存在'];
-                    break;
-            }
-            $arr1 = $latitude;
-            //二次投放  地区
-            $latitude = $this->get_latitude(2, $data2['address'], $to);
-            switch ($latitude) {
-                case 2:
-                    return ['status' => 'fail', 'msg' => '该地址不存在或网络异常,请稍后再试'];
-                    break;
-                case 3:
-                    return ['status' => 'fail', 'msg' => '该地区所标注为区县,请选择以区域生成类型'];
-                    break;
-                case 4:
-                    return ['status' => 'fail', 'msg' => '该地址不存在'];
-                    break;
-            }
-            $arr2 = $latitude;
-            $as = count($arr1);
-            for ($i = 0; $i < count($arr2); $i++) {
-                $arr1[$as] = $arr2[$i];
-                $as++;
-            }
-            $ak = 'fSTUrykGGBg5guFLt2RSaQpaPIZvFzPd';
-            foreach ($res as $k => $v) {
-                $coupon->beginTransaction;
-                try {
-                    //因两次投放区域可能存在不一致,需要单次对其经纬度进行区域划分
-                    $data2['latitude'] = adjust($arr1[$k]); //
-                    //再次查询所在地址
-                    $url = "http://api.map.baidu.com/geocoder/v2/?location={$data2['latitude']['lat']},{$data2['latitude']['lng']}&output=json&pois=0&ak={$ak}";
-                    $addr = file_get_contents($url);
-                    $addr = json_decode($addr, true);
-                    $data2['address'] = $addr['result']['addressComponent']['district'];
-                    $data2['cp_id'] = $res[$k];
-                    $sta = $coupon->create($data2);
-                } catch (\Exception $e) {
-                    if ($e->getCode() == 23000) {
-                        return ['status' => 'fail', 'msg' => '添加失败,存在重复优惠券编号' . $e->getTrace()[0]['args'][1][0]];
-                    }
-                    return ['status' => 'fail', 'msg' => '添加失败,回滚'];
-                }
-            }
-//           生成编号
-            if ($sta->id) {
-                return ['status' => 'success', 'msg' => '添加成功'];
-            }
-            return ['status' => 'fail', 'msg' => '添加失败'];
+        $role = [
+            'cp_cate_id' => 'exists:coupon_category,id',
+            'cr_type' => 'required',
+            'address1' => 'required_if:cr_type,2',
+            'address2' => 'required_if:cr_type,1',
+            'start_at' => 'required|date',
+            'end_at' => 'required|after_or_equal:start_at',
+            'note' => 'required',
+            'create_num' => 'required|integer|between:1,10001',
+        ];
+        $message = [
+            'cp_cate_id.exists' => '优惠券类别错误！',
+            'cr_type.required' => '生成方式不能为空！',
+            'address1.required_if' => '区/县地址不能为空',
+            'address2.required_if' => '定点地址不能为空',
+            'start_at.required'=>'开始时间不能为空',
+            'start_at.date' => '开始时间类型错误！',
+            'end_at.required'=>'结束时间不能为空',
+            'end_at.after_or_equal' => '结束时间必须是开始时间之后！',
+            'note.required' => '描述不能为空！',
+            'create_num.required' => '生成数量必填',
+            'create_num.integer' => '生成数量必须是整数',
+            'create_num.between' => '一次最多生成1万条数据',
+        ];
+        $validator = Validator::make($data, $role, $message);
+        if ($validator->fails()) {
+            return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
+        # 查找该优惠券
+        $coupon_category = $coupon_category->select('send_start_at','send_end_at','send_num','picture_url','deduction_url')
+            ->where('category_status',1)
+            ->where('id',$data['cp_cate_id'])->first();
+        # 优惠券效期strtotime($data['start_at'])时间戳
+        $max_at = strtotime( $coupon_category['send_end_at']);//最大效期
+        $min_at = strtotime( $coupon_category['send_start_at']);//最小效期
+        if(is_in_range($min_at,strtotime($data['start_at']),$max_at) && is_in_range($min_at,strtotime($data['end_at']),$max_at)){
+            $data['start_at'] = date('Y-m-d H:i:s', strtotime($data['start_at']));//开始时间
+            $data['end_at'] = date('Y-m-d H:i:s', strtotime($data['end_at']));//结束时间
+        }else{
+            return ['status' => 'fail', 'msg' => '开始或者结束时间不正确'];
+        }
+
+        # 批量生成坐标及唯一编码 获取方式：调用方法还是取数据库
+        if($data['cr_type'] == 2) {//按市级 —— 取数据库
+            //判断坐标仓库是否足够，取出对应的坐标集合，并删除（避免重用的多次）
+            $num_loc =  $cn_lat_lng_bag->count();//仓库现有的坐标数量
+            if ($data['create_num']>$num_loc){
+                return ['status' => 'fail', 'msg' => '坐标池数量不足，请先生成足量的坐标'];
+            }
+            //取数据
+            $latitude = $cn_lat_lng_bag->select('lat','lng','uuid','district','adcode','district','province','city')
+//                ->where('city','深圳市')
+                ->limit($data['create_num'])
+                ->get()->toArray();
+        }else{//定点或按区县 —— 调用方法
+            $ads = $data['cr_type'] == 0 ? ['type' => 1,'adr' => $data['address2']] : ['type' => 2,'adr' => $data['address1']];
+            $lat_lng = get_latitude($ads['type'], $ads['adr'], $data['create_num']);//调用方法生成坐标
+            switch ($lat_lng) {
+                case 2:
+                    return ['status' => 'fail', 'msg' => '该地址不存在或网络异常,请稍后再试'];
+                    break;
+                case 3:
+                    return ['status' => 'fail', 'msg' => '该地区所标注为区县,请选择以区域生成类型'];
+                    break;
+                case 4:
+                    return ['status' => 'fail', 'msg' => '该地址不存在'];
+                    break;
+            }
+            # 生成$create_num个优惠券编号
+            $arr_uuid = create_unique_max_8bit_int($data['create_num']);//唯一编码数组
+            $latitude = [];
+            $ak = 'fSTUrykGGBg5guFLt2RSaQpaPIZvFzPd';
+            foreach ($lat_lng as $k => $v){
+                $arr_formatted = get_address_component($ak,$v['lng'],$v['lat']);
+
+                $latitude[] = array_merge(
+                    $v,
+                    ['uuid' => $arr_uuid[$k]],
+//                    ['formatted_address' => $arr_formatted['result']['formatted_address']],//详细地址
+                    ['district' => $arr_formatted['result']['addressComponent']['district']],
+                    ['adcode' => $arr_formatted['result']['addressComponent']['adcode']],
+                    ['province' => $arr_formatted['result']['addressComponent']['province']],
+                    ['city' => $arr_formatted['result']['addressComponent']['city']]
+                );
+            }
+
+        }
+        unset($data['address1']);
+        unset($data['address2']);
+        DB::beginTransaction();
+        try{
+            foreach ($latitude as $k => $v){
+                $arr_tf[] = $coupon->create(array_merge(
+                    $v,
+                    ['cp_number' => date('Ymd').$v['adcode'].sprintf("%09d", $v['uuid']) ],//生成优惠券编号  时间+排序编码
+                    ['start_at' =>  date('Y-m-d H:i:s', strtotime($data['start_at']))],
+                    ['end_at' => date('Y-m-d H:i:s', strtotime($data['end_at']))],
+                    ['cp_cate_id' => $data['cp_cate_id']],
+                    ['note' => $data['note']]
+                ));
+            }
+            $cn_lat_lng_bag->limit($data['create_num'])->delete();//删除掉数据库取出来的数据，避免多次使用
+            DB::commit();
+        }catch(\Illuminate\Database\QueryException $ex){
+            DB::rollback();//事务回滚
+            return ['status' => 'fail', 'msg' => '删除失败'];
+        }
+        return ['status' => 'success', 'msg' => '删除成功'];
     }
 
-    /*
-     * 表格处理
+    /**
+     *优惠券首页ajax数据传送
      */
-    public function Importexcel($files)
-    {
-        $res = [];
-        Excel::load($files, function ($reader) use (&$res) {
-            $reader = $reader->getSheet(0);
-            $res = $reader->toArray();
-        });
-        $arr = array();
-        for ($i = 0; $i < count($res); $i++) {
-            if ($i == 0) {
-                continue;
-            }
-            $arr[$i - 1] = $res[$i][1];
-        }
-        return $arr;
-    }
-
-    public function ajax_list(Request $request, Coupon $coupon)
+    public function ajax_list(Request $request, Coupon $coupon,Merchant $merchant)
     {
         if ($request->ajax()) {
-            //分页 //{$search['value']}  ,pq_coupon.start_at,pq_coupon.end_at
+            //分页
             $page = $request->get('start') / $request->get('length') + 1;//页码
-            $search = $request->get('search');//like
+            $search = $request->input('search');//like
             $data = $coupon
-                ->with(['prcture' => function ($query) {
-                    $query->select('id', 'picture_url');
-                }])
-                ->with(['merchant' => function ($query) {
-                    $query->select('id', 'nickname');
+                ->with(['coupon_category' => function ($query) {
+                    $query->select('id', 'picture_url','merchant_id','merchant_name','coupon_name','coupon_type','coupon_money','spend_money');
                 }])
                 ->with(['member' => function ($query) {
                     $query->select('id', 'nickname');
                 }])
-                ->when($search, function ($coupon, $search) {
-                    $coupon->whereRaw("concat(note,price,address) like '%{$search['value']}%'");
+                ->when($search, function ($query) use($search , $coupon) {
+                    $coupon->whereRaw("concat(note,coupon_money,district) like '%{$search['value']}%'");
                 })
-                ->select('id', 'note', 'picture_id', 'latitude', 'address', 'cp_id', 'merchant_id', 'action', 'start_at', 'end_at', 'create_at', 'price', 'status', 'member_id')
+                ->select('id','cp_cate_id','start_at','end_at','uuid','status','content','create_at','member_id','lng','lat','note','district','cp_number','adcode')
                 ->paginate($request->get('length'), null, null, $page)->toArray();
             $cnt = $data['total'];//总记录
             $info = [
@@ -505,67 +285,70 @@ class CouponController extends Controller
                 'recordsFiltered' => $cnt,
                 'data' => $data['data'],
             ];
+//            dump($info);
             return $info;
         }
     }
 
-    public function edit(Coupon $coupon, Merchant $merchant, Member $member)
+    /**
+     * 优惠券编辑页
+     */
+    public function edit(Coupon $coupon, Merchant $merchant, Member $member,CouponCategory $coupon_category)
     {
-        $data['couponInfo'] = $coupon;
+        $data['couponInfo'] = $coupon;//当前优惠券信息
+        $data['merchantInfo'] = $merchant->select('id', 'nickname')->get();//商家信息
+        $data['pictureInfo'] = $coupon_category->select('id', 'coupon_type','coupon_name','coupon_money', 'merchant_id', 'send_start_at','send_end_at')->get();//商家拥有的优惠券
         $data['merchantInfo'] = $merchant->select('id', 'nickname')->get();
         return view('admin.coupon.edit', $data);
     }
 
-    public function update(Request $request, Coupon $coupon)
+    /**
+     * 更新优惠券
+     * type是否有效期（0有；）  cr_type生产优惠券方式（0区县范围；1定点周边；）
+     */
+    public function update(Request $request, Coupon $coupon,CouponCategory $coupon_category)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => 'fail', 'msg' => '非法的请求类型'];
         }
-        $data = $request->only('cp_id', 'note', 'merchant_id', 'type', 'start_at', 'end_at', 'action', 'price', 'status');
+        $data = $request->only('cp_cate_id','start_at','end_at','note');
 
         $role = [
-            'cp_id' => 'nullable|unique:coupon,cp_id,' . $coupon->id,
-            'merchant_id' => 'required |exists:merchant,id',
-            'type' => 'required',
+            'cp_cate_id' => 'nullable|exists:coupon_category,id',
             'start_at' => 'nullable|date',
             'end_at' => 'nullable|after_or_equal:start_at',
-            'action' => 'required',
-            'price' => 'required|numeric',
-            'status' => 'nullable|numeric',
+            'note' => 'nullable|string|between:3,20'
         ];
-
         $message = [
-            'cp_id.unique' => '优惠券编号已存在！',
-            'merchant_id.required' => '所属商家不能为空！',
-            'merchant_id.exists' => '所属商家非法！',
-            'type.required' => '优惠券类型不能为空！',
+            'cp_cate_id.exists' => '优惠券类别错误！',
             'start_at.date' => '开始时间类型错误！',
             'end_at.after_or_equal' => '结束时间必须是开始时间之后！',
-            'action.required' => '优惠方式不能为空！',
-            'price.required' => '优惠价格不能为空！',
-            'price.numeric' => '优惠价格不合法！',
-            'status.required' => '使用状态不能为空！',
-            'status.numeric' => '使用状态不合法！',
+            'note.string' => '非法输入',
+            'note.between' => '输入的字节数为3到20位'
         ];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
-        //判断是否无期限
-        if (!$data['type'] == 1) {
-            $data['start_at'] = date('Y-m-d H:i:s', strtotime($data['start_at']));
-            $data['end_at'] = date('Y-m-d H:i:s', strtotime($data['end_at']));
-        } else {
-            unset($data['start_at']);
-            unset($data['end_at']);
-            //获取时,+7天为结束时间
-        }
-        //调整时间
-        if (!empty($data['start_at'])) {
-            if ($data['start_at'] == '1970-01-01 00:00:00' || $data['end_at'] == '1970-01-01 00:00:00') {
-                return ['status' => 'fail', 'msg' => '时间格式不合法'];
+        # 查找该优惠券
+        $coupon_category = $coupon_category->select('send_start_at','send_end_at','send_num','picture_url','deduction_url')
+            ->where('category_status',1)
+            ->where('id',$data['cp_cate_id'])->first();
+        # 优惠券效期
+        $max_at = strtotime( $coupon_category['send_end_at']);//最大效期
+        $min_at = strtotime( $coupon_category['send_start_at']);//最小效期
+        if( !empty($data['start_at']) ){
+            if((!is_in_range($min_at,strtotime($data['start_at']),$max_at))){
+                return ['status' => 'fail', 'msg' => '开始时间不正确'];
             }
         }
+        if( !empty($data['end_at']) ){
+            if(!is_in_range($min_at,strtotime($data['end_at']),$max_at)){
+                return ['status' => 'fail', 'msg' => '结束时间不正确'];
+            }
+
+        }
+        $data = array_filter($data);//为空的是不更新的部分
         // 更新数据
         $res = $coupon->update($data);
         if ($res) {
@@ -575,81 +358,90 @@ class CouponController extends Controller
         }
     }
 
+    /**
+     * 删除单一优惠券
+     * 已领取且未过期
+     */
     public function destroy($id)
     {
         $coupon = new Coupon();
         $coupon = $coupon->find($id);
-        $res = $coupon->delete();
-        if ($res) {
-            return ['status' => 'success'];
-        } else {
-            return ['status' => 'fail', 'error' => '删除失败！'];
+        if(!empty($coupon['member_id']) || $coupon['status']==1){
+            return ['status' => 'fail', 'error' => '用户持有该优惠券，不能删除！'];
+        }else{
+            $res = $coupon->delete();
+            if ($res) {
+                return ['status' => 'success'];
+            } else {
+                return ['status' => 'fail', 'error' => '删除失败！'];
+            }
         }
     }
 
-    /*
-     * 周边优惠券请求接口
+    /**
+     * 查看周边优惠券请求接口
      */
-    public function select_coupon(Request $request, Coupon $coupon, Picture $picture, Merchant $merchant)
+    public function select_coupon(Request $request, Coupon $coupon, CouponCategory $coupon_category, Merchant $merchant)
     {
         $role = [
             'lat' => 'required',
             'lng' => 'required',
-            'member_id' => 'required | exists:member,id',
+            'member_id' => 'exists:member,id',
         ];
         $message = [
             'lat.required' => '北纬不能为空！',
             'lng.required' => '东经不能为空！',
-            'member_id.required' => '用户id不能为空！',
-            'member_id.exists' => '用户id非法！',
+            'member_id.exists' => '用户id不合法！',
         ];
         $data = $request->only('lat', 'lng', 'member_id');
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        //查询其所在地区
+        //查询当前所在区县
         $ak = 'fSTUrykGGBg5guFLt2RSaQpaPIZvFzPd';
         $url = "http://api.map.baidu.com/geocoder/v2/?location={$data['lat']},{$data['lng']}&output=json&pois=0&ak={$ak}";
         $addr = file_get_contents($url);
         $addr = json_decode($addr, true);
+        $adcode = $addr['result']['addressComponent']['adcode'];
         $district = $addr['result']['addressComponent']['district'];
-        $res = $coupon->where('address', $district)->select('id', 'latitude')->whereNull('member_id')->get();// where('lat'< xx)
+        //获取当前区县的所有优惠券
+        $res = $coupon
+            ->with([
+                'coupon_category' => function ($query) {$query->select('id', 'picture_url','merchant_id','merchant_name','coupon_name','coupon_type','coupon_money','spend_money');}
+            ])
+            ->where('adcode', $adcode)->select('id','cp_cate_id','lat','lng','note','start_at','end_at','cp_number')
+            ->whereNull('member_id')->orderBy('uuid')->get()->toArray();//排除已领取
+//        dump($res);die();
         if (empty($res[0])) {
             res(null, '该地区[' . $district . ']周围没有优惠券,去其他地方看看吧', 'success', 201);
         }
-        $distance = 500;//要找多少米内的//0
+        $distance = 500;//要找多少米内的
         //将找出来的所有数据,每一条都跟用户所在的经纬度进行匹配
         $as = 0;
         $merchant_row = [];
+        $arr = [];
         foreach ($res as $k => $v) {
-//            $juli = getDistance($data['lat'], $data['lng'], $v['latitude']['lat'], $v['latitude']['lng']);//xx  xx
-            $juli = GetDistance2($data['lat'], $data['lng'], $v['latitude']['lat'], $v['latitude']['lng']);//xx  xx
-            if ($juli <= $distance) {
-                //如果距离满足,重新查询
-                $row = $coupon->select('cp_id', 'merchant_id', 'start_at', 'end_at', 'action', 'price', 'merchant_id', 'note')->find($v['id']);
-                //排除相同商家
-                if (in_array($row['merchant_id'], $merchant_row)) {
-                    //已经有了,跳过本次循环
-                    continue;
-                } else {
-                    //还没有,存入
-                    $merchant_row[] = $row['merchant_id'];
+            $juli = GetDistance2($data['lat'], $data['lng'], $v['lat'], $v['lng']);
+            if ($juli <= $distance) {//如果距离满足
+                if ( in_array($v['coupon_category']['merchant_id'], $merchant_row) || (!is_in_range(strtotime( $v['start_at']),time(),strtotime( $v['end_at']))) ) {//相同商家 不在效期
+                    continue;//跳出循环、不执行
+                } else {//还没有，保存当前数据
+                    $merchant_row[] = $v['coupon_category']['merchant_id'];//记录已存在的店铺
                 }
                 $arr[$as]['coupon_id'] = $v['id'];
-                $arr[$as]['coupon_code'] = $row['cp_id'];
-                $latitude = adjust($v['latitude']);
-                $arr[$as]['lat'] = $latitude['lat'];
-                $arr[$as]['lng'] = $latitude['lng'];
+                $arr[$as]['coupon_code'] = $v['cp_number'];
+                $arr[$as]['lat'] = $v['lat'];
+                $arr[$as]['lng'] = $v['lng'];
                 //修改
-                $re = $merchant->select('avatar', 'nickname', 'appraise_n', 'img_url')->where('id', $row['merchant_id'])->first();
+                $re = $merchant->select('avatar', 'nickname', 'appraise_n', 'img_url')->where('id', $v['coupon_category']['merchant_id'])->first();
                 $arr[$as]['merchant_logo'] = $request->server('HTTP_HOST') . '/' . $re['avatar'];//商家的logo
                 $arr[$as]['merchant_background_img'] = $request->server('HTTP_HOST') . '/' . $re['img_url'];//商家的logo
                 $arr[$as]['nickname'] = $re['nickname'];//商家的名称
                 $arr[$as]['appraise_n'] = $re['appraise_n'];//商家的评价星级
                 //优惠券的有效期和组装
-                $arr[$as]['start_at'] = $row['start_at'];
-                $arr[$as]['end_at'] = $row['end_at'];
+                $arr[$as]['start_at'] = $v['start_at'];
+                $arr[$as]['end_at'] = $v['end_at'];
                 //组装hot和end
                 if (!empty($arr[$as]['start_at']) && !empty($arr[$as]['end_at'])) {//开始和结束时间不为空,说明有时间,不是无期限的,不需要给出临时的假时间
                     $time = time();
@@ -666,10 +458,10 @@ class CouponController extends Controller
                     $arr[$as]['end_at'] = date('Y-m-d H:i:s', strtotime('+7 days') - 60);//减去60秒
                 }
                 //优惠券的note组装 直接取出描述字段
-                if ($row['action'] == 1) {
-                    $arr[$as]['note'] = $row['price'] . '元' . $row['note'];
+                if ($v['coupon_category']['coupon_type'] == 1) {
+                    $arr[$as]['note'] = $v['coupon_category']['coupon_money'] . '元' . $v['note'];
                 } else {
-                    $arr[$as]['note'] = $row['price'] . '折' . $row['note'];
+                    $arr[$as]['note'] = $v['coupon_category']['coupon_money'] . '折' . $v['note'];
                 }
                 $as++;
             }
@@ -677,47 +469,6 @@ class CouponController extends Controller
         if (empty($arr)) {
             res(null, '周围' . $distance . '米内没有优惠券', 'success', 201);
         }
-        //返回之前,先存入
-        /*      if( empty(Redis::get($data['member_id'].'coupon')) ){
-                  //为空,是第一次请求
-                  Redis::setex($data['member_id'].'coupon', 3600, json_encode($arr,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES ));//存入
-              }else{
-                  //不为空,说明是第二次请求地址
-                  $ros = Redis::get($data['member_id'].'coupon');//取出,
-                  $ros = json_decode( $ros,true );
-                  //先去重,将arr里的优惠券id存入一个临时数组,作为值,一旦这个id在缓存中出现,删除缓存里的键值
-                  foreach ( $arr as $k=>$v ){
-                      $temp[] = $v['coupon_id'];
-                  }
-                  //去重,如果缓存中的优惠券,在查出来的结果中,删除
-                  foreach ( $ros as $k=>$v ){
-                      if( in_array( $v['coupon_id'],$temp ) ){
-                          unset($ros[$k]);
-                      }
-                  }
-                  if( !empty($ros) ){
-                      //在匹配下,ros中,距离用户当前位置的距离,如果大于500米,则删除
-                      $member_addr = bd_encrypt( $data['lat'],$data['lng'] );
-                      foreach ( $ros as $k=>$v ){
-                          $juli = getDistance($member_addr['lat'], $member_addr['lng'], $v['lat'], $v['lng']);//xx  xx
-                          if( $juli >= 1000 ){ //如果上一次请求的,跟用户当前位置,超过五百米,则删除
-                              unset($ros[$k]);
-                          }
-                      }
-                      if( !empty($ros) ) {
-                          //不为空,缓存中还有数据,拼接
-                          foreach ( $ros as $k=>$v ){
-                              $arr[] = $v;//拼接进去
-                          }
-                      }
-                      //不为空,缓存中还有数据,拼接
-      //                foreach ( $ros as $k=>$v ){
-      //                    $arr[] = $v;//拼接进去
-      //                }
-                  }
-                  //将最新的存入
-                  Redis::setex($data['member_id'].'coupon', 3600, json_encode($arr,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES ));//存入
-              }  */
         res($arr);
     }
 
@@ -729,39 +480,41 @@ class CouponController extends Controller
         $data = $request->only('coupon_id', 'lat', 'lng', 'member_id');
         $role = [
             'lat' => 'required',
-            'coupon_id' => 'required | exists:coupon,id',
+            'coupon_id' => 'exists:coupon,id',
             'lng' => 'required',
-            'member_id' => 'required | exists:member,id',
+            'member_id' => 'exists:member,id',
         ];
         $message = [
-            'lat.required' => '北纬不能为空！',
-            'coupon_id.required' => '优惠券id不能为空！',
+            'lat.required' => '纬度不能为空！',
             'coupon_id.exists' => '优惠券id非法！',
-            'lng.required' => '东经不能为空！',
-            'member_id.required' => '用户id不能为空！',
+            'lng.required' => '经度不能为空！',
             'member_id.exists' => '用户id非法！',
         ];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        //根据优惠券的id,查找优惠券的详情
-        $res1 = $coupon->select('merchant_id', 'content')->find($data['coupon_id']);
-        //判断该商家是否已经收藏
+        # 根据优惠券的id,查找优惠券的详情
+        $res1 = $coupon
+            ->with([
+                'coupon_category' => function ($query) {$query->select('id', 'picture_url','merchant_id','merchant_name','coupon_name','coupon_type','coupon_money','spend_money');}
+            ])
+            ->select('cp_cate_id', 'content','note')
+            ->find($data['coupon_id']);
+        # 判断该商家是否已经收藏
         $res2 = $member->select('merchant_id')->find($data['member_id']);
-        $is_collection = 2;//没有收藏
-        if (!empty($res2['merchant_id'])) {
-            //不为空
+        $is_collection = 2;//初始化为没有收藏
+        if (!empty($res2['merchant_id'])) {//商家不为空就去判断
             $merchant_id = json_decode($res2['merchant_id'], true);
-            $is_collection = in_array($res1['merchant_id'], $merchant_id) ? 1 : 2;
+            $is_collection = in_array($res1['coupon_category']['merchant_id'], $merchant_id) ? 1 : 2;
         }
         //返回商家的地址(详细地址),返回商家的使用说明,返回距离
-        $res3 = $merchant->select('address', 'latitude')->find($res1['merchant_id']);
+        $res3 = $merchant->select('address', 'latitude')->find($res1['coupon_category']['merchant_id']);
         $latitude = bd_encrypt($data['lat'], $data['lng']);
-        $distance = getDistance($latitude['lat'], $latitude['lng'], $res3['latitude']['lat'], $res3['latitude']['lng']);
-        $content = json_decode($res1['content'], true);
+        $distance = getDistance($latitude['lat'], $latitude['lng'], $res3['lat'], $res3['lng']);
+        $content = json_decode($res1['note'], true);
         $arr = [
-            'merchant_id' => $res1['merchant_id'],
+            'merchant_id' => $res1['coupon_category']['merchant_id'],
             'address' => $res3['address'],
             'distance' => $distance,
             'is_collection' => $is_collection,//1=已经收藏,2=没有收藏
@@ -769,46 +522,55 @@ class CouponController extends Controller
         ];
         res($arr);
     }
-
-    /*
+    /**
      * 领取优惠券
      */
     public function get_coupon(Request $request, Coupon $coupon, Member $member)
     {
+        $data = $request->only('member_id', 'coupon_id','lat','lng');
         $role = [
-            'member_id' => 'required',
-            'coupon_id' => 'required | exists:coupon,id',
+            'member_id' => 'exists:member,id',
+            'coupon_id' => 'exists:coupon,id',
+            'lat' => 'required',
+            'lng' => 'required',
         ];
         $message = [
-            'member_id.required' => '用户id不能为空！',
-            'coupon_id.required' => '优惠券id不能为空！',
-            'coupon_id.exists' => '优惠券非法！',
+            'member_id.exists' => '用户id不合法！',
+            'coupon_id.exists' => '优惠券不合法！',
+            'lat.required' => '纬度不能为空！',
+            'lng.required' => '经都不能为空！',
         ];
-        $data = $request->only('member_id', 'coupon_id');
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        //先判断这张券是否有被人领取
-        $res = $coupon->select('member_id', 'start_at', 'end_at')->find($data['coupon_id']);
-        if (empty($res['member_id'])) {
-            //等下解封
-            DB::transaction(function () use ($coupon, $member, $data, $res) {
-                //判断时间是否未空,为空则为无期限
-                if (empty($res['start_at']) || empty($res['end_at'])) {
-                    //无限期
-                    $start_at = date('Y-m-d H:i:s');//开始时间
-                    $end_at = date('Y-m-d H:i:s', strtotime($start_at . '+1month'));
-                    $res1 = $coupon->select()->where('id', $data['coupon_id'])->update(['member_id' => $data['member_id'], 'start_at' => $start_at, 'end_at' => $end_at, 'create_at' => $start_at]);
-                } else {
-                    $create_at = date('Y-m-d H:i:s');//优惠券获取时间
-                    $res1 = $coupon->select()->where('id', $data['coupon_id'])->update(['member_id' => $data['member_id'], 'create_at' => $create_at]);
-                }
+        # 先判断这张券是否有被人领取及有没有在效期内
+        $res = $coupon->select('member_id', 'start_at', 'end_at')->where('status',0)->find($data['coupon_id']);
+//        dump($res['end_at']);
+//        dump(empty($res['member_id']),strtotime($res['end_at']));
+        if (empty($res['member_id']) && is_in_range(strtotime($res['start_at']),time(),strtotime($res['end_at'])) ) {//没人领取且在有效期内
+            // 调整效期
+            $start_at = date('Y-m-d H:i:s');//开始时间为当前时间
+            $end_at = (strtotime($start_at . '+1month')>strtotime($res['end_at'])) ? $res['end_at'] : date('Y-m-d H:i:s',strtotime($start_at . '+1month')) ;//最长效期为1个月
+            // 更新优惠券表 用户表
+            DB::transaction(function () use ($coupon, $member, $data, $start_at,$end_at) {
+                //优惠券表更新 'status' => 1已领取但未使用
+                $res1 = $coupon->where('id', $data['coupon_id'])
+                    ->update([
+                        'member_id' => $data['member_id'] ,
+                        'start_at' => $start_at,
+                        'end_at' => $end_at,
+                        'create_at' => $start_at,
+                        'status' => 1,
+                        'rewarded_lng' => $data['lng'],
+                        'rewarded_lat' => $data['lat'],
+                    ]);
+
+                //用户表入库
                 $res = $member->select('coupon_id')->where('id', $data['member_id'])->first();
                 if (empty($res['coupon_id'])) {
                     //如果为空,则直接加入
-                    $coupon_id = [0 => $data['coupon_id']];
-                    $coupon_id = json_encode($coupon_id);
+                    $coupon_id = json_encode( [0 => $data['coupon_id']] );
                 } else {
                     //不为空,找出来,然后加入
                     $arr = $res['coupon_id'];
@@ -816,6 +578,7 @@ class CouponController extends Controller
                     $coupon_id = json_encode($arr);
                 }
                 $res2 = $member->select()->where('id', $data['member_id'])->update(['coupon_id' => $coupon_id]);
+
                 if ($res1 && $res2) {
                     DB::commit();
                     res(null, '成功');
@@ -824,48 +587,52 @@ class CouponController extends Controller
                 res(null, '失败', 'fail', 100);
             });
         }
-        res(null, '来晚一步,优惠券已经被人抢走啦', 'fail', 105);
+        res(null, '有缘无分，您来早或来晚一步啦！', 'fail', 105);
     }
 
-    /*
+    /**
      * 使用优惠券
-     * 使用时修改status=2
+     * status=1才能使用  使用时修改status=2
      */
     public function consume(Request $request, Coupon $coupon)
     {
         $data = $request->only('coupon_id', 'member_id');
         $role = [
-            'coupon_id' => 'required | exists:coupon,id',
-            'member_id' => 'required | exists:member,id',
+            'coupon_id' => 'exists:coupon,id',
+            'member_id' => 'exists:member,id',
         ];
         $message = [
-            'coupon_id.required' => '优惠券id不能为空！',
             'coupon_id.exists' => '优惠券非法！',
-            'member_id.required' => '用户id不能为空！',
             'member_id.exists' => '用户不合法！',
         ];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        //判断这张优惠券是否已经使用
-        $res = $coupon->select('cp_id', 'status', 'start_at', 'end_at')->where('id', $data['coupon_id'])->where('member_id', $data['member_id'])->first();
-        if (empty($res['cp_id'])) {
-            res(null, '非法操作,该优惠券与用户不匹配', 'fail', 106);
+        # 验证优惠券是否存在且用户是否拥有此优惠券
+        $res = $coupon->select('id','cp_cate_id', 'status', 'start_at', 'end_at')
+            ->where('id', $data['coupon_id'])
+            ->where('member_id', $data['member_id'])
+            ->limit(1)->first();
+
+        if (empty($res['id'])) {
+            res(null, '非法操作,优惠券与用户不匹配', 'fail', 106);
         }
+        #  'status' => 1 未使用 且在 有效期内
         if ($res['status'] == 1) {
             //判断是否在有效期区间
-            if( time() >=  strtotime($res['start_at'])  &&  time() <=  strtotime($res['end_at']))
+            if( is_in_range(strtotime($res['start_at']),time(),strtotime($res['end_at'])) )
             {
-               $res2 = $coupon->select()->where('id', $data['coupon_id'])->update(['status' => 2]);
+                $res2 = $coupon->where('id', $data['coupon_id'])->update(['status' => 2]);
                 if ($res2) {
-                $data = ['code' => $res['cp_id']];
-                res($data, '成功');
+                    $data = ['code' => $res['cp_cate_id']];
+                    res($data, '成功');
                 }
-            res(null, '失败', 'fail', 100);
+                res(null, '网络故障，请联系管理员', 'fail', 100);
             }else{
-                 res(null, '优惠券不在使用期限内:', 'fail', 104);
-            }    
+                $coupon->where('id', $data['coupon_id'])->update(['status' => 3]);//过期啦
+                res(null, '优惠券不在使用期限内:', 'fail', 104);
+            }
         }
         res(null, '优惠券已被使用或超过有效期', 'fail', 100);
     }
@@ -875,51 +642,52 @@ class CouponController extends Controller
      * status===1未过期
      *  $coupon_ids['coupon_id']用户的所有优惠券id
      */
-    public function available(Request $request, Member $member, Coupon $coupon, Picture $picture)
+    public function available(Request $request, Member $member, Coupon $coupon, CouponCategory $coupon_category)
     {
         //返回一张图片,有效期,id
         $data = $request->only('member_id');
         $role = [
-            'member_id' => 'required',
+            'member_id' => 'exists:coupon,member_id',
         ];
         $message = [
-            'member_id.required' => '用户id不能为空！',
+            'member_id.exists' => '用户还没有获得优惠券！',
         ];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        $coupon_ids = $member->select('coupon_id')->where('id', $data['member_id'])->first();
-        if (empty($coupon_ids['coupon_id'])) {
-            res(null, '用户还没有获得优惠券', 'success', 201);
-        }
-        //先找出用户拥有的优惠券
-        $res1 = $coupon->select('id', 'picture_id', 'start_at', 'end_at')->where('status', 1)->whereIn('id',$coupon_ids['coupon_id'])->get();
+
+        # 先找出用户拥有的未使用的优惠券
+        $res1 = $coupon->select('id', 'cp_cate_id', 'start_at', 'end_at','cp_cate_id')->where('member_id',$data['member_id'])
+            ->where('status', 1)->get();//未使用->过期
         $res1 = json_decode($res1,true);
+
         //如果空表示没有未使用优惠券
         if ($res1 == null) {
             res(null, '用户没有未使用的优惠券', 'success', 201);
         }
+
+        $res2 = [];//接取有效期未使用的优惠券
         //如果有先判断并更新状态
-        foreach ($res1 as $k => $v) {
-            if (time() >= strtotime($v['end_at'])) {//已过期,更新状态
-                $res_udt = $coupon->where('id', $v['id'])->update(['status' => 3]);
+        foreach ($res1 as $k => $v) {//领取的时候已经判断了最小时间，这里只需要判断最晚效期
+            if (time() >= strtotime($v['end_at'])) {//已过期,更新状态'status' => 3过期
+                $coupon->where('id', $v['id'])->update(['status' => 3]);
+                continue;//不在效期不记录，跳出
+            }else{
+                $res2[] = $v;
             }
         }
-        //过滤后查找所有未使用的优惠券
-        $res2 = $coupon->select('id', 'picture_id', 'start_at', 'end_at', 'status')->where('status', 1)->whereIn('id', $coupon_ids['coupon_id'])->get();
-        $res2 = json_decode($res2,true);
         if($res2 == null){
             res(null, '用户没有未使用的优惠券', 'success', 201);
         }
         foreach ($res2 as $k => $v){
-            $res_pic = $picture->select('picture_url')->where('id', $v['picture_id'])->first();
+            $res_pic = $coupon_category->select('picture_url')->where('id', $v['cp_cate_id'])->first();
             $arr[] = [
                 'coupon_id' => $v['id'],
                 'coupon_img_url' => $request->server('HTTP_HOST') . '/' . $res_pic['picture_url'],
                 'start_at' => $v['start_at'],
                 'end_at' => $v['end_at'],
-            ];  
+            ];
         }
         res($arr);
     }
@@ -928,15 +696,15 @@ class CouponController extends Controller
      * 查看我的优惠券(已过期)
      * status===3已过期
      */
-    public function expired(Request $request, Member $member, Coupon $coupon, Picture $picture)
+    public function expired(Request $request, Member $member, Coupon $coupon, CouponCategory $coupon_category)
     {
         //返回一张图片,有效期,id
         $data = $request->only('member_id');
         $role = [
-            'member_id' => 'required',
+            'member_id' => 'exists:coupon,member_id',
         ];
         $message = [
-            'member_id.required' => '用户id不能为空！',
+            'member_id.exists' => '用户还没有获得优惠券！',
         ];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
@@ -946,48 +714,37 @@ class CouponController extends Controller
         if (empty($coupon_ids['coupon_id'])) {
             res(null, '用户还没有获得优惠券', 'success', 201);
         }
-        //通过优惠券id，查找有价值的优惠券
-        $res1 = $coupon->select('id', 'picture_id', 'start_at', 'end_at', 'status')->where('status', 1)->whereIn('id', $coupon_ids['coupon_id'])->get();
+        # 判断'status'=1中有没有过期的
+        $res1 = $coupon->select('id', 'cp_cate_id', 'start_at', 'end_at','cp_cate_id')->where('member_id',$data['member_id'])
+            ->where('status', 1)->get();//未使用->过期
         $res1 = json_decode($res1,true);
-        // dump($res1);        
-        if($res1 == null){//1、如果没有有价值的优惠券，就直接查找拥有的优惠券中status===3的
-            $res2 = $coupon->select('id', 'picture_id', 'start_at', 'end_at', 'status')->where('status', 3)->whereIn('id', $coupon_ids['coupon_id'])->get();
-            $res2 = json_decode($res2,true);
-            if($res2 == null){
-                res(null, '用户没有已过期的优惠券', 'success', 201);
+
+        //如果有无过期的并更新状态
+        foreach ($res1 as $k => $v) {//领取的时候已经判断了最小时间，这里只需要判断最晚效期
+            if (time() >= strtotime($v['end_at'])) {//已过期,更新状态'status' => 3过期
+                $coupon->where('id', $v['id'])->update(['status' => 3]);
             }
-            foreach ($res2 as $k => $v){
-                $res_pic = $picture->select('picture_url')->where('id', $v['picture_id'])->first();
-                $arr[] = [
-                    'coupon_id' => $v['id'],
-                    'coupon_img_url' => $request->server('HTTP_HOST') . '/' . $res_pic['picture_url'],
-                    'start_at' => $v['start_at'],
-                    'end_at' => $v['end_at'],
-                ];  
-            }
-        }else{//2、先判断当前有价值的优惠券是否过期，如果过期就修改为status==3
-            foreach ($res1 as $k => $v) {
-                //如果过期,更新状态
-                if (time() >= strtotime($v['end_at'])) {
-                    $res_udt = $coupon->where('id', $v['id'])->update(['status' => 3]);
-                }
-            }
-            // 查找所有优惠券status==3的优惠券
-            $res3 = $coupon->select('id', 'picture_id', 'start_at', 'end_at', 'status')->where('status', 3)->whereIn('id', $coupon_ids['coupon_id'])->get();
-            $res3 = json_decode($res3,true);
-            if($res3 == null){
-                res(null, '用户没有已过期的优惠券', 'success', 201);
-            }
-            foreach ($res3 as $k => $v){
-                $res_pic = $picture->select('picture_url')->where('id', $v['picture_id'])->first();
-                $arr[] = [
-                    'coupon_id' => $v['id'],
-                    'coupon_img_url' => $request->server('HTTP_HOST') . '/' . $res_pic['picture_url'],
-                    'start_at' => $v['start_at'],
-                    'end_at' => $v['end_at'],
-                ];  
-            }
-        }     
+        }
+
+        // 查找所有优惠券过期status==3的优惠券
+        $res2 = $coupon->select('id', 'cp_cate_id', 'start_at', 'end_at')->where('member_id',$data['member_id'])
+            ->where('status', 3)->get();
+
+        $res2= json_decode($res2,true);
+
+        if($res2 == null){
+            res(null, '用户没有已过期的优惠券', 'success', 201);
+        }
+        foreach ($res2 as $k => $v){
+            $res_pic = $coupon_category->select('picture_url')->where('id', $v['cp_cate_id'])->first();
+            $arr[] = [
+                'coupon_id' => $v['id'],
+                'coupon_img_url' => $request->server('HTTP_HOST') . '/' . $res_pic['picture_url'],
+                'start_at' => $v['start_at'],
+                'end_at' => $v['end_at'],
+            ];
+        }
+
         res($arr);
     }
 
@@ -995,7 +752,7 @@ class CouponController extends Controller
      * 查看我的优惠券(已使用)
      * status==2
      */
-    public function has_been_used(Request $request, Member $member, Coupon $coupon, Picture $picture)
+    public function has_been_used(Request $request, Member $member, Coupon $coupon, CouponCategory $coupon_category)
     {
         $data = $request->only('member_id');
         $role = [
@@ -1013,18 +770,33 @@ class CouponController extends Controller
             res(null, '用户还没有获得优惠券', 'success', 201);
         }
         //用户已使用的优惠券
-        $res = $coupon->select('id', 'picture_id', 'start_at', 'end_at', 'status')->where('status', 2)->whereIn('id', $res['coupon_id'])->get();
+        $res = $coupon->select('id', 'cp_cate_id', 'start_at', 'end_at')
+            ->whereIn('id', $res['coupon_id'])
+            ->where('status', 2)->get();
         if (empty($res[0])) {
             res(null, '用户没有已使用的优惠券了', 'success', 201);
         }
         foreach ($res as $k => $v) {
-            $res2 = $picture->select('picture_url')->where('id', $v['picture_id'])->first();
+            $res2 = $coupon_category->select('picture_url')->where('id', $v['cp_cate_id'])->first();
             $arr[$k]['coupon_id'] = $v['id'];
             $arr[$k]['coupon_img_url'] = $request->server('HTTP_HOST') . '/' . $res2['picture_url'];
             $arr[$k]['start_at'] = $v['start_at'];
             $arr[$k]['end_at'] = $v['end_at'];
         }
         res($arr);
+    }
+
+
+
+    /**
+     * 生成3500个坐标并入库
+     * @param CnLatLngBag $cn_lat_lng_bag
+     * @return array
+     */
+    public function stores_location(Request $request,CnLatLngBag $cn_lat_lng_bag){
+        $cn_lat_lng_bag->creates_sz_loc(10);//生成3500条坐标
+//        $cn_lat_lng_bag->creates_sz_loc(1);//测试用
+        return ['status' => 'success', 'msg' => '新增成功'];
     }
 
 }

@@ -162,34 +162,28 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
-        //后台验证码captcha
-        Mews\Captcha\CaptchaServiceProvider::class,
-        //短信sms
-        Toplan\PhpSms\PhpSmsServiceProvider::class,
-        //图片处理 压缩
-        Intervention\Image\ImageServiceProvider::class,
-        //excel
-        Maatwebsite\Excel\ExcelServiceProvider::class,
-        //极光推送jpush
-//        Illuminate\Foundation\ComposerScripts::class ,
-       //sms
-        Hyperbolaa\Alisms\AlismsServiceProvider::class,
-        /*
-         * Package Service Providers...
-         */
         Laravel\Tinker\TinkerServiceProvider::class,
 
-        /*
-         * Application Service Providers...
-         */
+        /********* 自定义注册件 ********************/
+        Toplan\PhpSms\PhpSmsServiceProvider::class,//短信sms
+        Hyperbolaa\Alisms\AlismsServiceProvider::class,//阿里sms
+        Intervention\Image\ImageServiceProvider::class,//图片处理 压缩
+        Maatwebsite\Excel\ExcelServiceProvider::class,//excel
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        //添加Socialite Providers第三方登录
-        SocialiteProviders\Manager\ServiceProvider::class,
+        SocialiteProviders\Manager\ServiceProvider::class,//添加Socialite Providers第三方登录
+        Dingo\Api\Provider\LaravelServiceProvider::class,//DingoApi扩展
+        Mews\Captcha\CaptchaServiceProvider::class,//后台验证码captcha
+//        Tymon\JWTAuth\Providers\LaravelServiceProvider::class,//jwt API验证
 
+
+
+
+//        Emadadly\LaravelUuid\LaravelUuidServiceProvider::class,//生成唯一编码
+//        Illuminate\Foundation\ComposerScripts::class ,//极光推送jpush
     ],
 
     /*
@@ -238,17 +232,16 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        //后台Admin_captcha验证码
-        'Captcha' => Mews\Captcha\Facades\Captcha::class,
-        //短信sms
-        'PhpSms'=>Toplan\PhpSms\Facades\Sms::class,
-        //图片处理 压缩
-        'Image' => Intervention\Image\Facades\Image::class,
-        //excel
-        'Excel'    => Maatwebsite\Excel\Facades\Excel::class,
-        //Socialite
-        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
 
+        /********* 自定义添加件 ********************/
+        'Captcha' => Mews\Captcha\Facades\Captcha::class,//后台Admin_captcha验证码
+        'PhpSms'=>Toplan\PhpSms\Facades\Sms::class,//短信sms
+        'Image' => Intervention\Image\Facades\Image::class,//图片处理 压缩
+        'Excel'    => Maatwebsite\Excel\Facades\Excel::class,//excel
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,//Socialite第三方登陆扩展
+        'UUID' => Webpatser\Uuid\Uuid::class,//随机生成uuid
+//        'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
+//        'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
     ],
 
 ];

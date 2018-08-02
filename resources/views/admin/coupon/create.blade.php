@@ -15,9 +15,9 @@
                 </div>
             </div>
             <div class="row cl" >
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>优惠券图片：</label>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>该商家优惠券：</label>
                 <div class="formControls col-xs-8 col-sm-9">
-                    <select class="select" name="picture_id" id="picture_id">
+                    <select class="select" name="cp_cate_id" id="picture_id">
                     </select>
                 </div>
             </div>
@@ -26,11 +26,11 @@
                 <div class="formControls col-xs-8 col-sm-9 skin-minimal">
                     <div class="radio-box">
                         <input name="cr_type" type="radio" value="1" id="status-8" checked >
-                        <label for="status-1">商家周边</label>
+                        <label for="status-1">定点周边</label>
                     </div>
                     <div class="radio-box">
                         <input name="cr_type" type="radio" value="0" id="status-9" >
-                        <label for="status-2">本市区域</label>
+                        <label for="status-2">区/县范围</label>
                     </div>
                 </div>
             </div>
@@ -44,49 +44,24 @@
                         <option value="宝安区">宝安区</option>
                         <option value="龙岗区">龙岗区</option>
                         <option value="盐田区">盐田区</option>
+                        <option value="盐田区">龙华区</option>
+                        <option value="盐田区">坪山区</option>
                     </select>
                 </div>
                 <div class="formControls col-xs-8 col-sm-9" id="ce2">
-                    <input type="text" class="input-text"  placeholder="请填写详细的商家地址" id="address2" name="address2">
+                    <input type="text" class="input-text"  placeholder="请填写详细的商家地址" id="address2" name="address2" value="广东省深圳市">
                 </div>
-            </div>
-            <div class="row cl">
-                <div class="radio-box" style="display:none">
-                    <input name="type" type="hidden" value="0" id="status-2" >
-                    <label for="status-2">有时效</label>
-                </div>
-            {{--</div>--}}
             </div>
             <div class="row cl" id="hidden_t" name="xz" >
                 <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>开始时间：</label>
                 <div class="formControls col-xs-8 col-sm-9">
                     <input type="datetime-local" class="input-text"  placeholder="开始时间" id="start_at" name="start_at" ><br/>
-                    <font size="1" color="red">*开始时间务必为00:00  例如：2018/10/1 00:00</font>
+                    <font size="1" color="red">*开始时间必须在活动时间内；务必为00:00  例如：2018/10/1 00:00</font>
                 </div>
                 <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>结束时间：</label>
                 <div class="formControls col-xs-8 col-sm-9">
                     <input type="datetime-local" class="input-text"  placeholder="结束时间" id="end_at" name="end_at" style="margin-top: 5px;"><br/>
-                    <font size="1" color="red">*结束时间务必为23:59  例如：2018/10/31 23:59</font>
-                </div>
-            </div>
-
-            <div class="row cl">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>优惠形式：</label>
-                <div class="formControls col-xs-8 col-sm-9 skin-minimal">
-                    <div class="radio-box">
-                        <input name="action" type="radio" value="2" id="status-3"  checked>
-                        <label for="status-3">折扣</label>
-                    </div>
-                    <div class="radio-box">
-                        <input name="action" type="radio" value="1" id="status-4" >
-                        <label for="status-4">减免金额</label>
-                    </div>
-                </div>
-            </div>
-            <div class="row cl" id="" >
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>优惠价格：</label>
-                <div class="formControls col-xs-8 col-sm-9">
-                    <input type="text" class="input-text"  placeholder="如果是折扣,请直接填写折扣率(如9.5),金额则直接填写数字(单位元,如30)" id="price" name="price">
+                    <font size="1" color="red">*结束时间必须在活动时间内；务必为23:59  例如：2018/10/31 23:59</font>
                 </div>
             </div>
             <div class="row cl" id="" >
@@ -118,7 +93,7 @@
                 @foreach($pictureInfo as $v)
                     var id_ = '{{$v->merchant_id}}';
                     if(id_ == id){
-                        $("#picture_id").append("<option value='{{ $v->id  }}''>{{ $v->price  }}{{ $v->action==1 ? '元' : '折' }}</option>");
+                        $("#picture_id").append("<option value='{{ $v->id  }}''>{{ $v->coupon_name }}　活动时间：{{ $v->send_start_at}}至{{ $v->send_end_at}}　面额/折扣：{{ $v->coupon_money}}</option>");
                     }
                 @endforeach
             })
@@ -140,7 +115,7 @@
                 @foreach($pictureInfo as $v)
                 var id_ = '{{$v->merchant_id}}';
                 if(id_ == id){
-                    $("#picture_id").append("<option value='{{ $v->id  }}''>{{ $v->price  }}{{ $v->action==1 ? '元' : '折' }}</option>");
+                    $("#picture_id").append("<option value='{{ $v->id  }}''>{{ $v->coupon_name }}　　发券时间：{{ $v->send_start_at}}至{{ $v->send_end_at}}　面额/折扣：{{ $v->coupon_money}}</option>");
                 }
                 @endforeach
             })
@@ -170,7 +145,7 @@
                 focusCleanup:true,
                 success:"valid",
                 submitHandler:function(form){//提交后执行以下代码
-                    $('#sub').attr("disabled","true"); //防止重复点击 $('#sub').attr("disabled","true"); //防止重复点击
+                    // $('#sub').attr("disabled","true"); //防止重复点击 $('#sub').attr("disabled","true"); //防止重复点击
                     $(form).ajaxSubmit(function(msg){
                         if( msg.status != 'success' ){  // 失败
                             layer.alert(msg.msg, {

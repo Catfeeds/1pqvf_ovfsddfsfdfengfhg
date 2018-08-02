@@ -12,7 +12,7 @@ class Swap extends Model
     protected $dates = ['deleted_at'];
     protected $table = 'swap';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','coupon_id','member_id','status','integral'];
+    protected $fillable = ['id','coupon_id','member_id','status','integral','exc_mem_id'];
 
     function member(){
         return $this->belongsTo(\App\Models\Member::class,'member_id','id');

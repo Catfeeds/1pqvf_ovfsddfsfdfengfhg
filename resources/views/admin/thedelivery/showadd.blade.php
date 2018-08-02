@@ -40,7 +40,7 @@
             <div class="row cl">
                 <label class="form-label col-xs-4 col-sm-3">订单号：</label>
                 <div class="formControls col-xs-8 col-sm-9">
-                    <input name="Order" type="text" class="input-text" autocomplete="off" value="{{ $Order  }}">
+                    <input name="order_sn" type="text" class="input-text" autocomplete="off" value="{{ $order_sn  }}">
                 </div>
             </div>
             <div class="row cl">

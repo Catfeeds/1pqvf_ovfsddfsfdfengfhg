@@ -19,7 +19,7 @@ class CommentController extends Controller
     }
 
     /**
-     * 评论列表
+     * 评论列表(管理员)
      * @param Request $request
      * @param Comment $comment
      * @return array
@@ -74,11 +74,30 @@ class CommentController extends Controller
         }
     }
 
+    /**
+     * 管理员删除
+     * @param $id
+     * @return array
+     * @throws \Exception
+     */
     public function destroy($id)
     {
         $comment = new Comment();
-        $comment = $comment->find($id);
-        $res = $comment->delete();
+        //查询该评论的回复
+        $re_re =  $comment->where('parent_id',$id)->get();
+
+        if(!$re_re->count()){//如果没有回复直接删除
+            //删除该条评论
+            $res = $comment->where('id',$id)->delete();
+        }else{//删除该条评论下的所有回复
+            //获取所有评论信息并转化为数组
+            $all_com = $comment->select('id','parent_id')->get();
+            //获取该评论的所有后代
+            $re_re_ids = $comment::getChildrenId($all_com,$id);
+            //删除该评论的所有后代及本身
+            $del_ids = array_merge($re_re_ids,[$id]);
+            $res = $comment->whereIn('id',$del_ids)->delete();
+        }
         if ($res) {
             return ['status' => 'success'];
         } else {
@@ -96,28 +115,48 @@ class CommentController extends Controller
     public function comments(Request $request, Comment $comment,Inform $inform,Dynamic $dynamic,Topic $topic)
     {
         $data = $request->only("member_id", 'record_id', 'subject_catename', 'content');
-        $role = [
-            'member_id' => 'exists:member,id',
-            'record_id' => 'required',//被评论的 动态或者话题 的id
-            'content' => 'required',
-        ];
-        $message = [
-            'member_id.exists' => '用户请求非法',
-            'record_id.required' => '被评论的记录的id不能为空！',
-            'content.required' => '评论内容不能为空！',
-        ];
-        //过滤信息
-        $validator = Validator::make($data, $role, $message);
-        if ($validator->fails()) {
-            res(null, $validator->messages()->first(), 'fail', 101);
-        }
+
         //需要知道评论人,被评论的是动态还是话题,他的id,评论的内容
-        if ($data['subject_catename'] == 1) {
+        if ($data['subject_catename'] == 1) {//动态
+
+            $role = [
+                'member_id' => 'exists:member,id',
+                'record_id' => 'exists:dynamic,id',
+                'content' => 'required',
+            ];
+            $message = [
+                'member_id.exists' => '用户请求非法',
+                'record_id.exists' => '不存在该动态',
+                'content.required' => '评论内容不能为空！',
+            ];
+            //过滤信息
+            $validator = Validator::make($data, $role, $message);
+            if ($validator->fails()) {
+                res(null, $validator->messages()->first(), 'fail', 101);
+            }
+
             //为空,代表他是动态
             $arr['dy_id'] = $data['record_id'];
             //1. 获取该博客博主的id 即$b_ids['member_id']
             $b_ids = $dynamic->select('member_id')->where('id',$data['record_id'])->first();
         } else {
+
+            $role = [
+                'member_id' => 'exists:member,id',
+                'record_id' => 'exists:topic,id',
+                'content' => 'required',
+            ];
+            $message = [
+                'member_id.exists' => '用户请求非法',
+                'record_id.exists' => '不存在该话题',
+                'content.required' => '评论内容不能为空！',
+            ];
+            //过滤信息
+            $validator = Validator::make($data, $role, $message);
+            if ($validator->fails()) {
+                res(null, $validator->messages()->first(), 'fail', 101);
+            }
+
             //不为空,代表是话题
             $arr['to_id'] = $data['record_id'];
             //1. 获取该博客博主的id 即$b_ids['member_id']
@@ -131,9 +170,44 @@ class CommentController extends Controller
             if($inform->msm_inf($b_ids['member_id'])){
                 res(null, '成功');
             }
-            res(null, '成功，但通知发送失败');
+            res(null, '成功，未知错误');
         }
         res(null, '失败', 'fail', 100);
+    }
+
+    /**
+     * 查询删除或回复的权限
+     * @param Request $request
+     * member_id当前用户的id；；content评论的内容;parent_id回复id
+     * @param Comment $comment
+     */
+    public function chk_comments(Request $request, Comment $comment, Inform $inform)
+    {
+        $data = $request->only("member_id", 'parent_id','content');
+        $role = [
+            'member_id' => 'required',
+            'parent_id' => 'required',
+            'content' => 'required',
+        ];
+        $message = [
+            'member_id.required' => '用户不能为空',
+            'parent_id.required' => '回复的评论不能为空',
+            'content.required' => '评论内容不能为空！',
+        ];
+        //过滤信息
+        $validator = Validator::make($data, $role, $message);
+        if ($validator->fails()) {
+            res(null, $validator->messages()->first(), 'fail', 101);
+        }
+        //获取当前评论的所有者
+        $p_mid = $comment->select('member_id')->where('id',$data['parent_id'])->first();
+        //不能评论自己的评论
+        if($p_mid['member_id'] == $data['member_id']){
+            res(['re_status'=>'0'], '可删除不能回复','success',200);//没有回复权限
+        }else{
+            res(['re_status'=>'1'], '可回复不能删除','success',200 );//可以回复
+        }
+
     }
 
     /**
@@ -160,20 +234,21 @@ class CommentController extends Controller
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        $p_mid = $comment->select('member_id')->where('id',$data['parent_id'])->get();
+        //获取当前评论的所有者
+        $p_mid = $comment->select('member_id')->where('id',$data['parent_id'])->first();
         //不能评论自己的评论
-        if($p_mid[0]['member_id'] == $data['member_id']){
-            res(1, '不能评论自己的评论');
+        if($p_mid['member_id'] == $data['member_id']){
+            res(['re_status'=>'0'], '不能评论自己的评论','fail',101 );//没有回复权限
         }
         //找出parent_id的member_id写入p_mid
-        $data['p_mid'] = $p_mid[0]['member_id'];
+        $data['p_mid'] = $p_mid['member_id'];
         $res = $comment->create($data);
         if ($res) {
             //通知被评论者
             if($inform->msm_inf($p_mid[0]['member_id'])){
-                res(null, '成功');
+                res($res['id'], '成功');
             }
-            res(null, '成功，但通知发送失败');
+            res(null, '成功，未知故障');
         }
         res(null, '失败', 'fail', 100);
     }
@@ -182,6 +257,7 @@ class CommentController extends Controller
      * 管理员强制删除某条评论-真实删除（慎用）
      * @param Request $request
      * @param Comment $comment
+     * @throws \Exception
      */
     public function pun_comments(Request $request, Comment $comment)
     {
@@ -208,7 +284,7 @@ class CommentController extends Controller
 
         }else{//删除该条评论下的所有回复
             //获取所有评论信息并转化为数组
-            $all_com = $comment->select('id','parent_id')->get()->toArray();
+            $all_com = $comment->select('id','parent_id')->get();
             //获取该评论的所有后代
             $re_re_ids = $comment::getChildrenId($all_com,$data['comment_id']);
             //删除该评论的所有后代及本身
@@ -222,13 +298,13 @@ class CommentController extends Controller
         res(null, '失败', 'fail', 100);
     }
 
-    /**
-     * * 博主或评论者删除某条评论及其下的所有评论
+    /** * * 博主或评论者删除某条评论及其下的所有评论
+     * * $data['当前评论的id']
      * @param Request $request
      * @param Comment $comment
      * @param Dynamic $dynamic
      * @param Topic $topic
-     * $data['当前评论的id']
+     * @throws \Exception
      */
     public function del_comments(Request $request, Comment $comment,Dynamic $dynamic,Topic $topic)
     {
@@ -252,19 +328,19 @@ class CommentController extends Controller
         if ($data['subject_path'] == 1) {
             //为空,代表他是动态 动态id为$arr['dy_id'] = $data['record_id'];
             //获取该博客博主的member_id   即$b_ids['member_id']
-            $b_ids = $dynamic->select('member_id')->where('id',$data['record_id'])->first()->toArray();
+            $b_ids = $dynamic->select('member_id')->where('id',$data['record_id'])->first();
 
         } else {
             //不为空,代表是话题$arr['to_id'] = $data['record_id'];
             //1. 获取该博客博主的id 即$p_ids['member_id']
-            $b_ids = $topic->select('member_id')->where('id',$data['record_id'])->first()->toArray();
+            $b_ids = $topic->select('member_id')->where('id',$data['record_id'])->first();
         }
         //2.获取评论所有者id $tid['member_id']
-        $tid = $comment->select('member_id')->where('id',$data['comment_id'])->first()->toArray();
+        $tid = $comment->select('member_id')->where('id',$data['comment_id'])->first();
         //3.如果是评论者或者博主可以删除，反之不能删除
         if ($data['member_id'] == ($b_ids['member_id']) || $tid['member_id'] == $data['member_id'] ){
             //找出一级评论级其下的所有子孙后代
-            $all_com = $comment->select('id','parent_id')->get()->toArray();//数据库所有评论id
+            $all_com = $comment->select('id','parent_id')->get();//数据库所有评论id
             $id_arr = $comment->getChildrenId($all_com, $data['comment_id']);
             //查询该评论的后代
             if(!count($id_arr)){//如果没有回复直接删除
@@ -287,7 +363,7 @@ class CommentController extends Controller
 
     /**
      * 查询某个动态或者话题的所有评论
-     * 返回：
+     * subject_path 类别： 1动态，2话题
      * @param Request $request
      * @param Comment $comment
      */
@@ -297,7 +373,7 @@ class CommentController extends Controller
         $role = [
             'member_id' => 'exists:member,id',
             'record_id' => 'required',//被查询的 动态或者话题 的id
-            'subject_path' => 'required | between:1,3'
+            'subject_path' => 'required|between:1,3'
         ];
         $message = [
             'member_id.exists' => '用户请求非法',
@@ -313,40 +389,44 @@ class CommentController extends Controller
         #1.判断当前查询动态评论还是话题评论，获取博客下的所有一级评论:$p_ids
         if ($data['subject_path'] == 1) {
             //为空,代表他是动态 动态id为$arr['dy_id'] = $data['record_id'];
-            $p_ids = $comment->select('id')->where('dy_id',$data['record_id'])->get()->toArray();
+            $p_ids = $comment->select('id')->where('dy_id',$data['record_id'])->get();
         } else {
             //不为空,代表是话题$arr['to_id'] = $data['record_id'];
-            $p_ids = $comment->select('id')->where('to_id',$data['record_id'])->get()->toArray();
+            $p_ids = $comment->select('id')->where('to_id',$data['record_id'])->get();
         }
         #2.找出数据库中评论的所有后代及本身
-        $all_com = $comment->select('id','parent_id')->get()->toArray();
+        $all_com = $comment->select('id','parent_id')->get();
         $id_arr = $comment->getChildrenIds($all_com, $p_ids);
 //        dump($id_arr);
         #3.找出所有评论并排序
         if(count($id_arr)){
             $arr = $comment
-                ->select('comment.id','comment.member_id','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content')
+                ->select('comment.id','comment.member_id','comment.created_at','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content','comment.created_at','a.avatar','b.avatar AS p_avatar')
+                ->whereIn('comment.id',$id_arr)
                 ->leftjoin('member AS a','a.id','=','comment.member_id')
                 ->leftjoin('member AS b','b.id','=','comment.p_mid')
-                ->orderBy('id')
                 ->get();
-            $arr = obj_arr($arr);
             res($arr);
         }else{
             res(null);
         }
     }
 
-    public function tel_comments(Request $request, Comment $comment)
+    /**
+     * 查询某条评论下的所有回复
+     * @param Request $request
+     * @param Comment $comment
+     */
+    public function hot_comment(Request $request, Comment $comment)
     {
         $data = $request->only("member_id", 'comment_id');
         $role = [
-            'member_id' => 'exists:member,id',
-            'comment_id' => 'exists:comment,id',
+            'member_id' => 'required',
+            'comment_id' => 'required',
         ];
         $message = [
-            'member_id.exists' => '用户请求非法',
-            'comment_id.exists' => '请求不合法',
+            'member_id.required' => '用户请求非法',
+            'comment_id.required' => '请求不合法',
         ];
         //过滤信息
         $validator = Validator::make($data, $role, $message);
@@ -354,12 +434,11 @@ class CommentController extends Controller
             res(null, $validator->messages()->first(), 'fail', 101);
         }
         //获取所有评论信息
-        $all_com = $comment->select('id','parent_id')->get()->toArray();
-        dump($all_com);
-        //获取该评论所有后代并输出的一维数组
-        $th_ids = $comment::getChildrenId($all_com,$data['comment_id']);
-        dump($th_ids);
-//        $th_ids = $comment::getChildrenIds($all_com,$data['comment_id']);
+        $all_com = $comment->select('id','parent_id')->get();
+        //获取该评论所有后代并输出的一维数组,包含其本身
+        $th_ids = array_merge([$data['comment_id']],$comment::getChildrenId($all_com,$data['comment_id']));
+        $cmt_arr = $comment->select('*')->whereIn('id',$th_ids)->get();
+        res($cmt_arr);
     }
 
 

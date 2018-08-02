@@ -353,7 +353,7 @@ class ActivityController extends Controller
     public function activity(Request $request, Activity $activity)
     {
         //先查出所有活动(进行中,结束,活动封面,id)
-        $res = $activity->select('end_at', 'id', 'img_url', 'title')->get();
+        $res = $activity->orderBy('id', 'DESC')->select('end_at', 'id', 'img_url', 'title')->get();
         //返回  进行中(如果时间没超出=HOT),如果结束时间已经超出当前时间(END)
         $time = time();
         foreach ($res as $key => $val) {

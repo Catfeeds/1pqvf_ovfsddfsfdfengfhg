@@ -87,7 +87,7 @@
             {'data':'member.nickname',"defaultContent": ""},
             {'data':'intmall.trade_name',"defaultContent": ""},
             {'data':'logistics',"defaultContent": ""},
-            {'data':'Order',"defaultContent": ""},
+            {'data':'order_sn',"defaultContent": ""},
             {'data':'created_at',"defaultContent": ""},
             {'data':'delivery_time',"defaultContent": ""},
             {'data':'b',"defaultContent": ""},

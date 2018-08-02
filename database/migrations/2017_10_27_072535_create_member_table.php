@@ -38,7 +38,7 @@ class CreateMemberTable extends Migration
             $table->string('qr_code',255)->nullable()->comment( '二维码' );
             $table->string('medal',255)->nullable()->comment( '获得奖章' );
 //            $table->rememberToken()->comment('记住登录');
-            $table->string('api_token', 60)->unique()->comment( '记住登录' );
+            $table->string('api_token', 60)->unique()->comment( '登录验证' );
             $table->unsignedInteger('integral_swap')->nullable()->comment( '券换积分累积' );
             $table->text('steps')->nullable()->comment( '步数[x年x月x日:10,day2:20...]' );
 

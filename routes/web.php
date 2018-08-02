@@ -11,6 +11,9 @@
 |
 */
 Route::any('/','Home\IndexController@index');//设置默认访问控制器方法名
+Route::any('/chk_version','Api\IndexController@chk_version');//获取app版本信息
+Route::get('/reg_protocol','Admin\IndexController@reg_protocol');//注册协议
+Route::get('/privacy','Admin\IndexController@privacy');//隐私协议
 
 /**
  * 大后台
@@ -43,8 +46,10 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     Route::get('nice','MemberController@nice')->middleware('auth:api');//我的->点赞
     Route::get('comments','CommentController@comments')->middleware('auth:api');//我的->发表评论
     Route::get('re_comments','CommentController@re_comments')->middleware('auth:api');//我的->回复评论
+    Route::get('comment/chk_comments', 'CommentController@chk_comments')->middleware('auth:api');//查询回复或删除权限
     Route::get('del_comments','CommentController@del_comments')->middleware('auth:api');//博主或用户删除评论及回复
     Route::get('query_comment','CommentController@query_comment')->middleware('auth:api');//查询某一条动态/话题下的所有评论
+    Route::get('comment/hot_comment','CommentController@hot_comment')->middleware('auth:api');//查询某一条动态/话题下的所有评论
     Route::get('del_dy','DynamicController@del_dy')->middleware('auth:api');//我的->个人动态->删除动态
     Route::post('release_dynamic','DynamicController@release_dynamic')->middleware('auth:api');//我的->个人动态->发布动态
     Route::get('my_profile','MemberController@my_profile')->middleware('auth:api');//我的->个人资料->首页
@@ -127,6 +132,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     Route::get('topic/details','TopicController@details')->middleware('auth:api');//话题详情
     Route::post('topic/release_topic','TopicController@release_topic')->middleware('auth:api');//发布话题
     Route::get('topic/del_topic','TopicController@del_topic')->middleware('auth:api');//删除话题
+    Route::get('topic/hot_topic','TopicController@hot_topic')->middleware('auth:api');//查看单个话题
 
     //公共图片上传接口
     Route::post('img/uploads','AppraiseController@uploads')->middleware('auth:api');
@@ -181,7 +187,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
     //活动表
     Route::post('activity/ajax_list', 'ActivityController@ajax_list');
     //优惠券图片表
-    Route::post('picture/ajax_list', 'PictureController@ajax_list');
+    Route::post('coupon_category/ajax_list', 'CouponCategoryController@ajax_list');
     //商家评价表
     Route::post('appraise/ajax_list', 'AppraiseController@ajax_list');
     //评论表
@@ -234,6 +240,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
         Route::resource('member','MemberController');
         //商家 merchant 资源控制
         Route::resource('merchant','MerchantController');
+        Route::any('merchant_disable','MerchantController@mer_disable');//商家软删除
         //商家分类 ification 资源控制
         Route::resource('ification','IficationController');
         //优惠券管理 coupon 资源控制
@@ -254,13 +261,13 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
         //活动管理
         Route::resource('activity', 'ActivityController');
         //优惠券图片管理
-        Route::resource('picture', 'PictureController');
+        Route::resource('coupon_category', 'CouponCategoryController');
         //商家评价管理 只作为借口
         Route::resource('appraise', 'AppraiseController');
         //用户评论管理
         Route::resource('comment', 'CommentController');
         //强制删除某条评论及其回复
-        Route::resource('pun_comments','CommentController@pun_comments');
+        Route::post('pun_comments','CommentController@pun_comments');
         //奖章管理
         Route::resource('medal', 'MedalController');
         //排行管理
@@ -277,5 +284,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function (){
         Route::resource('takeflag', 'TakeFlagController');
         //积分商品发货
         Route::resource('theDelivery', 'TheDeliveryController');
+        //生成3500个坐标
+        Route::post('stores_location', 'CouponController@stores_location');
     });
 });

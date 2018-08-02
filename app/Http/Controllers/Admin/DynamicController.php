@@ -178,7 +178,7 @@ class DynamicController extends Controller
                 }
             );
             //批量删除
-            delPics($fine_arr);
+            @delPics($fine_arr);
         }
         # 删除文章下的所有评论
         //查询文章下的一级评论
@@ -343,8 +343,9 @@ class DynamicController extends Controller
         //当前显示的动态总数
         $items = $item * $request['page'];
         //查询指定信息条数并返回动态的图片,内容,发布人的头像,昵称,点赞数
-        $res = $dynamic->orderBy('created_at', 'DESC')->select('id', 'img_url', 'content', 'nice_num', 'member_id')
-            ->limit($items)->get();
+        $res = $dynamic->select('id', 'img_url', 'content', 'nice_num', 'member_id','created_at')
+            ->limit($items)->orderBy('created_at', 'DESC')->get()->toArray();
+
         if (empty($res[0])) {
             $arr['list'] = null;
             res($arr, '查询成功', 'success', 200);
@@ -353,14 +354,17 @@ class DynamicController extends Controller
             //根据用户的id,查找昵称和头像
             $row = $member->select('avatar', 'nickname')->find($v['member_id']);
             $img_url = json_decode($v['img_url'], true);
-            $nice = count(json_decode($v['nice_num'], true));
+            $img_num = empty( $img_url) ? 0 : count($img_url);
+            $nice = empty(json_decode($v['nice_num'],true)) ? 0 : count(json_decode($v['nice_num'], true));
             $arr['list'][] = [
                 'dynamic_id' => $v['id'],
-                'img_url' => $request->server('HTTP_HOST') . '/' . $img_url[0],//动态图片
+                'img_url' => $request->server('HTTP_HOST') . '/' . $img_url[0],//动态图片第一张
                 'content' => $v['content'],//动态内容
                 'nice_num' => $nice,//点赞数
                 'member_nickname' => $row['nickname'],//发布人昵称
                 'member_avatar' => $request->server('HTTP_HOST') . '/' . $row['avatar'],//发布人头像
+                'user_id' => $v['member_id'],//发布人id
+                'img_num' => $img_num,//照片总数
             ];
         }
         res($arr);
@@ -368,18 +372,16 @@ class DynamicController extends Controller
 
     /**
      * 动态详情（不含评论）
-     * 返回：博主id'member_id' 点赞总数nice_num 内容content 博主昵称member_nickname 博主头像member_avatar 博文图片img_url 点赞人头像列表'nice_list' 博主性别'sex' 是否已关注'is_focus' 当前查询的用户 'act_mem_id'
+     * 返回：博主id'member_id' 点赞总数nice_num 内容content 博主昵称member_nickname 博主头像member_avatar 博文图片img_url 点赞人头像列表'nice_list' 博主性别'sex' 是否已关注'is_focus' 当前查询的用户 'user_id'
      */
     public function show_dy_content(Request $request, Member $member, Dynamic $dynamic)
     {
-        $data = $request->only('member_id', 'dynamic_id','act_mem_id');
+        $data = $request->only('member_id', 'dynamic_id');
         $role = [
-            'act_mem_id' => 'required',
             'member_id' => 'required',
             'dynamic_id' => 'required',
         ];
         $message = [
-            'act_mem_id.required' => '用户请求不合法！',
             'member_id.required' => '用户id不能为空！',
             'dynamic_id.required' => '动态id不能为空！',
         ];
@@ -395,9 +397,10 @@ class DynamicController extends Controller
             $nice = null;//点赞人为空
             $nices['nice_list'] = null;
             $nice_num = 0 ;
+            $is_nice = 1;
         } else {
-            $nice_num= count(json_decode($res1['nice_num'], true));//点赞总数
             $nice = json_decode($res1['nice_num'], true);
+            $nice_num= count($nice);//点赞总数
             arsort($nice);
             $i = 1;
             //只查找7个
@@ -406,27 +409,29 @@ class DynamicController extends Controller
                     break;
                 }
                 //最新评论人的id
-                $avatar = $member->select('avatar')->find($k);
+                $avatar = $member->select('id','avatar')->find($k);
                 $nices['nice_list'][] = $request->server('HTTP_HOST') . '/' . $avatar['avatar'];
                 $i++;
             }
+            $is_nice = in_array($data['member_id'],array_keys($nice)) ? 0 : 1;
         }
+
+
         $arr = [];
         $arr = $nices;//点赞人的头像$arr[ "nice_list"]
         $arr['nice_num'] =  $nice_num; //点赞数
-        $arr['member_id'] = $res1['member_id'];//博主id
-        $arr['act_mem_id'] = $data['act_mem_id'];//当前用户id
+        $arr['nice_list'] = $nices['nice_list'];//点赞人头像
+        $arr['is_nice'] = $is_nice;//是否点赞（0已点；1可以点赞）
+        $arr['writer_id'] = $res1['member_id'];//博主id
+        $arr['writer_at'] =  date('Y-m-d H:i:s',strtotime($res1['created_at']));//发布时间
+        $arr['member_id'] = $data['member_id'];//当前用户id
         $arr['content'] = $res1['content'];//动态内容
-        $arr['member_nickname'] = $dy_mem['nickname'];//发布人昵称
-        $arr['member_avatar'] = $request->server('HTTP_HOST') . '/' . $dy_mem['avatar'];//发布人头像
+        $arr['writer_nickname'] = $dy_mem['nickname'];//发布人昵称
+        $arr['writer_avatar'] = $request->server('HTTP_HOST') . '/' . $dy_mem['avatar'];//发布人头像
         $img_url = json_decode($res1['img_url']);
-        //为图片加入前缀“www.yixitongda.com/”
-        array_walk(
-            $img_url,
-            function (&$s, $k, $prefix='www.yixitongda.com/') {
-            $s = str_pad($s, strlen($prefix) + strlen($s), $prefix, STR_PAD_LEFT);
-            }
-        );
+        if(!empty($img_url)){
+            $img_url = add_arr_prefix('url_prefix',$img_url);
+        }
         $arr['img_url'] = $img_url;
         $res2 = $member->select('fans_id', 'sex')->find($res1['member_id']);
         $arr['sex'] = $res2['sex'];//性别
@@ -443,25 +448,6 @@ class DynamicController extends Controller
             }
         }
         res($arr);
-//        //返回倒序的评论 评论:评论人昵称,头像,评论时间,评论内容
-//        $res = $comment->select('member_id', 'content', 'created_at')->orderBy('created_at', 'DESC')->where('dy_id', $data['dynamic_id'])->get();
-//        $arr['comment_num'] = count($res);//评论数
-//        if (empty($res[0])) {
-//            //没有评论
-//            $arr['comment_list'] = null;
-//        } else {
-//            foreach ($res as $k => $v) {
-//                $res2 = $member->select('nickname', 'avatar')->find($v['member_id']);
-//                $time = date('Y-m-d H:i:s', strtotime($v['created_at']));
-//                $arr['comment_list'][] = [
-//                    'content' => $v['content'],//评论内容
-//                    'created_at' => $time,//评论时间
-//                    'nickname' => $res2['nickname'],//评论人昵称
-//                    'avatar' => $request->server('HTTP_HOST') . '/' . $res2['avatar'],//评论人头像
-//                ];
-//            }
-//        }
-//        res($arr);
     }
 
     /**

@@ -28,7 +28,7 @@ class Inform extends Model
         if (empty($has_path_2)){
             DB::table('inform')->insert([
                 'inf_path' => '2',
-                'title' => '您有一条新评论',
+                'title' => '您有一条新回复',
             ]);
         }
         //存在，就获取to_member

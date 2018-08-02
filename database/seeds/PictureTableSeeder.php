@@ -1,7 +1,7 @@
 <?php
 use Illuminate\Database\Seeder;
 use Faker\Factory;
-use App\Models\Picture;
+use App\Models\couponcategory;
 class PictureTableSeeder extends Seeder
 {
     /**
@@ -9,7 +9,7 @@ class PictureTableSeeder extends Seeder
      *  优惠券图片表
      * @return void
      */
-    public function run(Picture $picture)
+    public function run(couponcategory $picture)
     {
         $picture -> truncate();//重置
         //实例化factory类    protected $fillable = ['id','merchant_id','price','picture_url','action'];

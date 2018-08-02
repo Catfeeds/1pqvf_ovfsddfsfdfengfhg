@@ -19,7 +19,7 @@ class CreateActivityTable extends Migration
             $table->increments('id')->comment( '主键ID' );
             $table->string('note',150)->nullable()->comment( '活动简介' );
             $table->string('title',150)->nullable()->comment( '活动标题' );
-            $table->string('img_url',255)->nullable()->comment( '封面图片' );
+            $table->string('img_url',255)->nullable()->comment( '封面图片,轮播' );
             $table->string('top_img_url',255)->nullable()->comment( '详情页面顶部图片' );
             $table->text('content')->nullable()->comment('赛事介绍');
 //            $table->string('content',255)->nullable()->comment( '赛事介绍' );

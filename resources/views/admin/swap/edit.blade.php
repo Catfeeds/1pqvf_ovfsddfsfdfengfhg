@@ -6,21 +6,28 @@
             <form action="{{ url('admin/swap/' . $swapInfo->id ) }}" method="post"  class="form form-horizontal" id="form-swap-edit">
                 {{ csrf_field() }}
                 {{ method_field('put') }}
+                 <input type="hidden"  value="{{ $swapInfo->id }}" name="id">
+                <div class="row cl">
+                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>优惠券id:</label>
+                    <div class="formControls col-xs-8 col-sm-9">
+                        {{ $swapInfo->coupon_id }}
+                    </div>
+                </div>
+                <div class="row cl">
+                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>当前状态<br>(1:已被兑换/2:还没被兑换)：</label>
+                    <div class="formControls col-xs-8 col-sm-9">
+                        @if($swapInfo->status==2)
+                            satus:{{ $swapInfo->status }}
+                            （已发布的且未兑换的优惠券）
+                        @else
+                            satus:{{ $swapInfo->status }}<span class="c-red">只有已发布的且未兑换的优惠券才能修改</span>
+                        @endif
+                    </div>
+                </div>
                 <div class="row cl">
                     <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>积分：</label>
                     <div class="formControls col-xs-8 col-sm-9">
                         <input type="text"  value="{{ $swapInfo->integral }}" class="input-text"  placeholder="修改积分只能是数值" id="integral" name="integral">
-                    </div>
-                </div>
-                <div class="row cl">
-                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>商品状态<br>(1:已被兑换/2:还没被兑换)：</label>
-                    <div class="formControls col-xs-8 col-sm-9">
-                        @if($swapInfo->status==1)
-                            <span class="c-red">已被兑换的商品无法修改积分</span>
-                            <input type="text"  value="{{ $swapInfo->status }}" readonly class="input-text"  id="status" name="status">
-                        @else
-                            <input type="text"  value="{{ $swapInfo->status }}" readonly class="input-text"   id="status" name="status">
-                        @endif
                     </div>
                 </div>
                 <div class="row cl">

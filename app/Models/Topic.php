@@ -12,6 +12,9 @@ class Topic extends Model
     protected $primaryKey = 'id';
     protected $fillable = ['id','lev_state','member_id','subject_id','nice_num','content','img_url','subjec_catename','created_at','addres'];
 
+    protected $casts = ['nice_num' => 'array','content' => 'array','img_url' => 'array'];
+
+
     function member(){
         return $this->belongsTo(\App\Models\Member::class,'member_id','id');
     }

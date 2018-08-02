@@ -20,7 +20,8 @@ class TheDeliveryController extends Controller
     public function ajax_list(Request $request, TheDelivery $thedelivery)
     {
         if ($request->ajax()) {
-            $data = $thedelivery->with('member')->with('intmall')->select('id', 'member_id', 'intmall_id', 'delivery_time', 'logistics', 'Order', 'created_at')->get();//address
+            $data = $thedelivery->with('member')->with('intmall')->select('id', 'member_id', 'intmall_id', 'delivery_time', 'logistics', 'order_sn', 'created_at')->get();//address
+            dump($data);die();
             $cnt = count($data);
             $info = [
                 'draw' => $request->get('draw'),
@@ -36,7 +37,7 @@ class TheDeliveryController extends Controller
     {
         //接收到id,然后查询用户的id是多少
         $theDelivery = new TheDelivery();
-        $res = $theDelivery->select('member_id', 'delivery_time', 'logistics', 'Order')->find($id);
+        $res = $theDelivery->select('member_id', 'delivery_time', 'logistics', 'order_sn')->find($id);
         if (empty($res['delivery_time'])) {
             //为空,还没发货
             $data['flag'] = 1;
@@ -45,7 +46,7 @@ class TheDeliveryController extends Controller
         }
         $data['id'] = $id;//已发货
         $data['logistics'] = $res['logistics'];
-        $data['Order'] = $res['Order'];
+        $data['order_sn'] = $res['order_sn'];
         //查询出地址
         $member = new Member();
         $res = $member->select('address')->find($res['member_id']);
@@ -56,14 +57,14 @@ class TheDeliveryController extends Controller
     public function update(Request $request, TheDelivery $theDelivery)
     {
 
-        $data = $request->only('logistics', 'Order');
+        $data = $request->only('logistics', 'order_sn');
         $role = [
             'logistics' => 'required',
-            'Order' => 'required',
+            'order_sn' => 'required',
         ];
         $message = [
             'logistics.required' => '物流不能为空！',
-            'Order.required' => '快递单号不能为空！',
+            'order_sn.required' => '快递单号不能为空！',
         ];
         //过滤信息
         $validator = Validator::make($data, $role, $message);
@@ -91,7 +92,7 @@ class TheDeliveryController extends Controller
         $res = $thedelivery->select('delivery_time')->find($id);
         //已领奖
         if (!empty($res['delivery_time'])) {
-            $res = $thedelivery->where('id', $id)->update(['delivery_time' => null, 'Order' => null, 'logistics' => null]);
+            $res = $thedelivery->where('id', $id)->update(['delivery_time' => null, 'order_sn' => null, 'logistics' => null]);
             if ($res) {
                 return ['status' => 'success', 'msg' => '成功'];
             }

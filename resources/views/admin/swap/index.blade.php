@@ -68,7 +68,7 @@
         //按列显示从服务器端过来的数据
         'columns':[
             {'data':'id',"defaultContent": ""},
-            {'data':'member.nickname',"defaultContent": ""},
+            {'data':'nickname',"defaultContent": ""},
             {'data':'integral',"defaultContent": "暂无"},
             {'data':'coupon.id',"defaultContent": ""},
             {'data':'status',"defaultContent": ""},
@@ -79,7 +79,7 @@
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
             $(row).find('td:eq(-2)').html(data.status == 1 ? '已被兑换' : '还没人理会');//z状态
-            $(row).find('td:eq(3)').html('优惠券id : '+data.coupon.id + '<br>所属商家id : ' + data.coupon.merchant_id + '<br>优惠价格 : ' + (data.coupon.action==1 ? data.coupon.price + '元' : data.coupon.price + '折'));//z状态
+            $(row).find('td:eq(3)').html('优惠券id : '+data.coupon_id + '　所属商家: ' + data.merchant_id + ':' + data.merchant_nickname + '　优惠面额/折扣 : ' + (data.coupon_type==1 ? data.coupon_money + '元' : data.coupon_money + '折'+'　效期：' + data.start_at+ '至' + data.end_at));//z状态
             //操作
             $(row).find('td:eq(-1)').html('<a title="编辑" href="javascript:;" onclick="swap_edit(' +
                 '\'互换编辑\',\'/admin/swap/'+data.id+'/edit\',\''+data.id+'\')" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a> ' +
