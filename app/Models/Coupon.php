@@ -8,7 +8,7 @@ class Coupon extends Model
 {
     protected $table = 'coupon';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','cp_cate_id','start_at','end_at','uuid','status','rewarded_lat','rewarded_lng','content','create_at','member_id','lng','lat','note','province','city','district','cp_number','adcode'];
+    protected $fillable = ['id','cp_cate_id','start_at','end_at','uuid','status','rewarded_lat','rewarded_lng','cr_adr_code','create_at','member_id','lng','lat','note','province','city','district','cp_number','adcode'];
 
     //优惠券和优惠券图片的关系 多对一
     function coupon_category(){

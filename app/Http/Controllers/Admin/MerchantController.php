@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Coupon;
+use App\Models\Ification;
 use App\Models\Member;
 use App\Models\Merchant;
 use App\Models\couponcategory;
@@ -20,9 +21,10 @@ class MerchantController extends Controller
         return view('admin.merchant.index');
     }
 
-    public function create(Request $request)
+    public function create(Ification $ification)
     {
-        return view('admin.merchant.create');
+        $data['ification'] =$ification->select('id', 'cate_name')->get();
+        return view('admin.merchant.create', $data);
     }
 
     public function store(Request $request, Merchant $merchant)
@@ -126,8 +128,9 @@ class MerchantController extends Controller
     {
         if ($request->ajax()) {
             $data = $merchant
-                ->select('id', 'labelling', 'nickname', 'ification_id', 'appraise_n', 'address', 'latitude', 'img_url', 'avatar', 'disabled_at', 'store_image','deleted_at')
-                ->withTrashed()->get()->toArray();//包含软删除的
+                ->leftJoin('ification','ification.id','=','merchant.ification_id')
+                ->select('merchant.id', 'merchant.labelling', 'merchant.nickname', 'merchant.ification_id', 'merchant.appraise_n', 'merchant.address', 'merchant.latitude', 'merchant.img_url', 'merchant.avatar', 'merchant.disabled_at', 'merchant.store_image','merchant.deleted_at','ification.cate_name')
+                ->withTrashed()->get();//包含软删除的
 //            dump($data);die();
             $cnt = count($data);
             $info = [
@@ -140,8 +143,9 @@ class MerchantController extends Controller
         }
     }
 
-    public function edit(Merchant $merchant)
+    public function edit(Merchant $merchant,Ification $ification)
     {
+        $data['ification'] =$ification->select('id', 'cate_name')->get();
         $data['merchantInfo'] = $merchant;
         return view('admin.merchant.edit', $data);
     }

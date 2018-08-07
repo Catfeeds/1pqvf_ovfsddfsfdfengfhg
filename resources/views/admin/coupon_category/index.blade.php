@@ -12,22 +12,34 @@
 	<table class="table table-border table-bordered table-bg datatables">
 		<thead>
 			<tr>
-				<th scope="col" colspan="7">优惠券分类列表</th>
+				<th scope="col" colspan="10">优惠券分类列表</th>
 			</tr>
 			<tr class="text-c">
                 <th width="">商家ID</th>
                 <th width="">商家名称</th>
 				<th width="">优惠券ID</th>
                 <th width="">优惠券名称</th>
+                <th width="">优惠券使用说明</th>
                 <th width="">优惠券图片</th>
-                <th width="">抵扣券图片</th>
+                <th width="">使用后图片</th>
+                <th width="">合同有效期</th>
+                <th width="">发行总数</th>
+                <th width="">当前状态</th>
                 <th width="">操作</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr class="text-c">
 				<td>商家ID</td>
-				<td>分类名称</td>
+				<td>商家名称</td>
+				<td>优惠券ID</td>
+				<td>优惠券名称</td>
+				<td>优惠券使用说明</td>
+				<td>优惠券图片</td>
+                <td>使用后图片</td>
+                <td>合同有效期</td>
+                <td>发行总数</td>
+                <td>当前状态</td>
 				<td class="td-manage"><a style="text-decoration:none" onClick="picture_stop(this,'10001')" href="javascript:;" title="停用"><i class="Hui-iconfont">&#xe631;</i></a>
 					<a title="编辑" href="javascript:;" onclick="picture_edit('优惠券图片分类编辑','admin-add.html','1','800','500')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>
 					<a title="删除" href="javascript:;" onclick="picture_del(this,'1')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a></td>
@@ -43,12 +55,12 @@
 <script type="text/javascript">
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[5,10,-1],[5,10,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索
         'ordering':true,//启用排序
-        "order": [[ 1, "desc" ]],//排序规则  默认下标为1的显示倒序
+        "order": [[ 2, "desc" ]],//排序规则  默认下标为1的显示倒序
         "stateSave": false,//使用状态.是否保持 默认true
         "processing": false,//是否显示数据在处理中的状态
         "serverSide": false,//是否开启服务端
@@ -68,8 +80,12 @@
             {'data':'merchant.nickname',"defaultContent": ""},
             {'data':'id',"defaultContent": ""},
             {'data':'coupon_name',"defaultContent": ""},
+            {'data':'coupon_explain',"defaultContent": ""},
             {'data':'picture_url',"defaultContent": ""},
             {'data':'deduction_url',"defaultContent": ""},
+            {'data':'send_end_at',"defaultContent": ""},
+            {'data':'send_num',"defaultContent": "暂无"},
+            {'data':'',"defaultContent": "生效"},
             {'data':'b',"defaultContent": ""},
         ],
         //自定义列  row= 每一行  data 数据  dataindex 数据所在的下标
@@ -78,9 +94,10 @@
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
             $(row).find('td:eq(2)').html(data.id);
-            $(row).find('td:eq(-2)').html(data.deduction_url == null ? '还没有图片' : '<img src="/'+ data.deduction_url +'" style="width: 100px;height: 80px;">');
+            $(row).find('td:eq(6)').html(data.deduction_url == null ? '还没有图片' : '<img src="/'+ data.deduction_url +'" style="width: 50px;height: 30px;">');
             $(row).find('td:eq(3)').html();
-            $(row).find('td:eq(4)').html(data.picture_url == null ? '还没有图片' : '<img src="/'+ data.picture_url +'" style="width: 100px;height: 80px;">');
+            $(row).find('td:eq(9)').html();
+            $(row).find('td:eq(5)').html(data.picture_url == null ? '还没有图片' : '<img src="/'+ data.picture_url +'" style="width: 50px;height: 30px;">');
 
             //操作
             $(row).find('td:eq(-1)').html('<a title="编辑" href="javascript:;" onclick="picture_edit(' +

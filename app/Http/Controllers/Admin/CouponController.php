@@ -67,12 +67,12 @@ class CouponController extends Controller
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
         # 查找该优惠券
-        $coupon_category = $coupon_category->select('send_start_at','send_end_at','send_num','picture_url','deduction_url')
+        $coupon_cate = $coupon_category->select('send_start_at','send_end_at','send_num','picture_url','deduction_url')
             ->where('category_status',1)
             ->where('id',$data['cp_cate_id'])->first();
         # 优惠券效期strtotime($data['start_at'])时间戳
-        $max_at = strtotime( $coupon_category['send_end_at']);//最大效期
-        $min_at = strtotime( $coupon_category['send_start_at']);//最小效期
+        $max_at = strtotime( $coupon_cate['send_end_at']);//最大效期
+        $min_at = strtotime( $coupon_cate['send_start_at']);//最小效期
         if(is_in_range($min_at,strtotime($data['start_at']),$max_at) && is_in_range($min_at,strtotime($data['end_at']),$max_at)){
             $data['start_at'] = date('Y-m-d H:i:s', strtotime($data['start_at']));//开始时间
             $data['end_at'] = date('Y-m-d H:i:s', strtotime($data['end_at']));//结束时间
@@ -100,8 +100,8 @@ class CouponController extends Controller
                 break;
         }
         //如果唯一,则格式化
-//        $data['lat'] = upd_str_long($latitude[0]['lat']);
-//        $data['lng'] = upd_str_long($latitude[0]['lng']);
+        $data['lat'] = $latitude[0]['lat'];
+        $data['lng'] = $latitude[0]['lng'];
         unset($data['address1']);
         unset($data['address2']);
         //根据最后的经纬度,将所在地区重新调整
@@ -115,10 +115,12 @@ class CouponController extends Controller
         $data['province'] = $addr['result']['addressComponent']['province'];
         $data['city'] = $addr['result']['addressComponent']['city'];
         # 生成唯一排序编码
-        $data['uuid'] = create_unique_max_8bit_int(1);//9位数，10亿量级
+        $data['uuid'] = create_unique_max_8bit_int(1)[0];//9位数，10亿量级
         # 生成优惠券编号  时间+排序编码
-        $data['cp_number'] = date('Ymd').$data['adcode'].sprintf("%09d", $data['uuid']);
+        $data['cp_number'] = date('Ymd').$data['adcode'].sprintf("%09d", $data['uuid'][0]);
         $res = $coupon->create($data);
+        # 计入发行总量
+        $coupon_category->where('category_status',1)->where('id',$data['cp_cate_id'])->update(['send_num'=>$coupon_cate['send_num']+1]);
         if ($res->id) {
             return ['status' => 'success', 'msg' => '添加成功'];
         }
@@ -176,12 +178,12 @@ class CouponController extends Controller
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
         # 查找该优惠券
-        $coupon_category = $coupon_category->select('send_start_at','send_end_at','send_num','picture_url','deduction_url')
+        $coupon_cate = $coupon_category->select('send_start_at','send_end_at','send_num','picture_url','deduction_url')
             ->where('category_status',1)
             ->where('id',$data['cp_cate_id'])->first();
         # 优惠券效期strtotime($data['start_at'])时间戳
-        $max_at = strtotime( $coupon_category['send_end_at']);//最大效期
-        $min_at = strtotime( $coupon_category['send_start_at']);//最小效期
+        $max_at = strtotime( $coupon_cate['send_end_at']);//最大效期
+        $min_at = strtotime( $coupon_cate['send_start_at']);//最小效期
         if(is_in_range($min_at,strtotime($data['start_at']),$max_at) && is_in_range($min_at,strtotime($data['end_at']),$max_at)){
             $data['start_at'] = date('Y-m-d H:i:s', strtotime($data['start_at']));//开始时间
             $data['end_at'] = date('Y-m-d H:i:s', strtotime($data['end_at']));//结束时间
@@ -200,7 +202,7 @@ class CouponController extends Controller
             $latitude = $cn_lat_lng_bag->select('lat','lng','uuid','district','adcode','district','province','city')
 //                ->where('city','深圳市')
                 ->limit($data['create_num'])
-                ->get()->toArray();
+                ->get();
         }else{//定点或按区县 —— 调用方法
             $ads = $data['cr_type'] == 0 ? ['type' => 1,'adr' => $data['address2']] : ['type' => 2,'adr' => $data['address1']];
             $lat_lng = get_latitude($ads['type'], $ads['adr'], $data['create_num']);//调用方法生成坐标
@@ -249,6 +251,7 @@ class CouponController extends Controller
                 ));
             }
             $cn_lat_lng_bag->limit($data['create_num'])->delete();//删除掉数据库取出来的数据，避免多次使用
+            $coupon_category->where('category_status',1)->where('id',$data['cp_cate_id'])->update(['send_num'=>$coupon_cate['send_num']+$data['create_num']]);# 计入发行总量
             DB::commit();
         }catch(\Illuminate\Database\QueryException $ex){
             DB::rollback();//事务回滚
@@ -268,7 +271,7 @@ class CouponController extends Controller
             $search = $request->input('search');//like
             $data = $coupon
                 ->with(['coupon_category' => function ($query) {
-                    $query->select('id', 'picture_url','merchant_id','merchant_name','coupon_name','coupon_type','coupon_money','spend_money');
+                    $query->leftjoin('merchant','merchant.id','=','coupon_category.merchant_id')->select('coupon_category.id', 'coupon_category.picture_url','coupon_category.merchant_id','coupon_category.coupon_name','coupon_category.coupon_type','coupon_category.coupon_money','coupon_category.spend_money','merchant.nickname AS merchant_name');
                 }])
                 ->with(['member' => function ($query) {
                     $query->select('id', 'nickname');
@@ -277,7 +280,7 @@ class CouponController extends Controller
                     $coupon->whereRaw("concat(note,coupon_money,district) like '%{$search['value']}%'");
                 })
                 ->select('id','cp_cate_id','start_at','end_at','uuid','status','content','create_at','member_id','lng','lat','note','district','cp_number','adcode')
-                ->paginate($request->get('length'), null, null, $page)->toArray();
+                ->paginate($request->get('length'), null, null, $page);
             $cnt = $data['total'];//总记录
             $info = [
                 'draw' => $request->get('draw'),
@@ -285,7 +288,6 @@ class CouponController extends Controller
                 'recordsFiltered' => $cnt,
                 'data' => $data['data'],
             ];
-//            dump($info);
             return $info;
         }
     }
@@ -408,10 +410,10 @@ class CouponController extends Controller
         //获取当前区县的所有优惠券
         $res = $coupon
             ->with([
-                'coupon_category' => function ($query) {$query->select('id', 'picture_url','merchant_id','merchant_name','coupon_name','coupon_type','coupon_money','spend_money');}
+                'coupon_category' => function ($query) {$query->leftjoin('merchant','merchant.id','=','coupon_category.merchant_id')->select('coupon_category.id', 'coupon_category.picture_url','coupon_category.merchant_id','merchant.nickname AS merchant_name','coupon_category.coupon_name','coupon_category.coupon_type','coupon_category.coupon_money','coupon_category.spend_money');}
             ])
             ->where('adcode', $adcode)->select('id','cp_cate_id','lat','lng','note','start_at','end_at','cp_number')
-            ->whereNull('member_id')->orderBy('uuid')->get()->toArray();//排除已领取
+            ->whereNull('member_id')->orderBy('uuid')->get();//排除已领取
 //        dump($res);die();
         if (empty($res[0])) {
             res(null, '该地区[' . $district . ']周围没有优惠券,去其他地方看看吧', 'success', 201);
@@ -458,10 +460,12 @@ class CouponController extends Controller
                     $arr[$as]['end_at'] = date('Y-m-d H:i:s', strtotime('+7 days') - 60);//减去60秒
                 }
                 //优惠券的note组装 直接取出描述字段
-                if ($v['coupon_category']['coupon_type'] == 1) {
+                if ($v['coupon_category']['coupon_type'] == 1 || $v['coupon_category']['coupon_type']== 0 ) {
                     $arr[$as]['note'] = $v['coupon_category']['coupon_money'] . '元' . $v['note'];
-                } else {
+                } elseif($v['coupon_category']['coupon_type'] == 2) {
                     $arr[$as]['note'] = $v['coupon_category']['coupon_money'] . '折' . $v['note'];
+                }else{
+
                 }
                 $as++;
             }
@@ -497,7 +501,8 @@ class CouponController extends Controller
         # 根据优惠券的id,查找优惠券的详情
         $res1 = $coupon
             ->with([
-                'coupon_category' => function ($query) {$query->select('id', 'picture_url','merchant_id','merchant_name','coupon_name','coupon_type','coupon_money','spend_money');}
+                'coupon_category' => function ($query) {$query->
+                leftjoin('merchant','merchant.id','=','coupon_category.merchant_id')->select('coupon_category.id', 'coupon_category.picture_url','coupon_category.merchant_id','merchant.nickname AS merchant_name','coupon_category.coupon_name','coupon_category.coupon_type','coupon_category.coupon_money','coupon_category.spend_money');}
             ])
             ->select('cp_cate_id', 'content','note')
             ->find($data['coupon_id']);

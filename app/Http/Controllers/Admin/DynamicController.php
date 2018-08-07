@@ -413,7 +413,7 @@ class DynamicController extends Controller
                 $nices['nice_list'][] = $request->server('HTTP_HOST') . '/' . $avatar['avatar'];
                 $i++;
             }
-            $is_nice = in_array($data['member_id'],array_keys($nice)) ? 0 : 1;
+            $is_nice = in_array($data['member_id'],array_keys($nice)) ? 0 : 1;//如果已点赞为0，反之为1
         }
 
 
@@ -441,11 +441,7 @@ class DynamicController extends Controller
             $arr['is_focus'] = 2;
         } else {
             //如果当前用户,在发布人的粉丝列表中,说明已经关注 1= 已关注,2= 未关注
-            if (in_array($data['member_id'], $friends_id)) {
-                $arr['is_focus'] = 1;
-            } else {
-                $arr['is_focus'] = 2;
-            }
+            $arr['is_focus'] = in_array($data['member_id'], $friends_id) ? 1 : 2;
         }
         res($arr);
     }

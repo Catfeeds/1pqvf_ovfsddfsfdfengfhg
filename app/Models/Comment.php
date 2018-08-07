@@ -9,7 +9,7 @@ class Comment extends Model
     //评论表
     protected $table = 'comment';
     protected $primaryKey = 'id';
-    protected $fillable = ['id', 'member_id','dy_id', 'to_id', 'parent_id','p_mid','content'];
+    protected $fillable = ['id', 'member_id','dy_id', 'to_id', 'parent_id','p_mid','content','first_branch_id'];
 
     //评论表和用户的关系 多对一
     function member()

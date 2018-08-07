@@ -14,7 +14,8 @@ class CouponCategory extends Model
     protected $dates = ['deleted_at'];
     protected $table = 'coupon_category';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','merchant_id','merchant_name','coupon_name','coupon_type','coupon_money','spend_money','send_start_at','send_end_at','category_status','send_num','picture_url','deduction_url','content'];
+    protected $fillable = ['id','merchant_id','coupon_name','coupon_explain','coupon_type','coupon_money','spend_money','send_start_at','send_end_at','category_status','send_num','picture_url','deduction_url','cp_cate_note'];
+
 
     //优惠券和商家的关系 多对一
     function merchant(){

@@ -166,6 +166,8 @@ class CommentController extends Controller
         $arr['content'] = $data['content'];
         $res = $comment->create($arr);
         if ($res) {
+
+            $comment->where('id',$res['id'])->update(['first_branch_id' => $res['id']]);//一级评论的first_branch_id是他本身
             //通知该文章所有者
             if($inform->msm_inf($b_ids['member_id'])){
                 res(null, '成功');
@@ -234,18 +236,22 @@ class CommentController extends Controller
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        //获取当前评论的所有者
-        $p_mid = $comment->select('member_id')->where('id',$data['parent_id'])->first();
+        //获取被评论的所有者及所属博文id
+        $p_mid = $comment->select('member_id','to_id','dy_id','first_branch_id')->where('id',$data['parent_id'])->first();
         //不能评论自己的评论
         if($p_mid['member_id'] == $data['member_id']){
             res(['re_status'=>'0'], '不能评论自己的评论','fail',101 );//没有回复权限
         }
         //找出parent_id的member_id写入p_mid
         $data['p_mid'] = $p_mid['member_id'];
+        //记录哪条博文下的评论
+        $data['to_id'] = $p_mid['to_id'];
+        $data['dy_id'] = $p_mid['dy_id'];
+        $data['first_branch_id'] = $p_mid['first_branch_id'];
         $res = $comment->create($data);
         if ($res) {
             //通知被评论者
-            if($inform->msm_inf($p_mid[0]['member_id'])){
+            if($inform->msm_inf($p_mid['member_id'])){
                 res($res['id'], '成功');
             }
             res(null, '成功，未知故障');
@@ -367,7 +373,7 @@ class CommentController extends Controller
      * @param Request $request
      * @param Comment $comment
      */
-    public function query_comment(Request $request, Comment $comment,Member $member)
+    public function query_comment(Request $request, Comment $comment)
     {
         $data = $request->only("member_id", 'record_id', 'subject_path', 'content');
         $role = [
@@ -387,29 +393,53 @@ class CommentController extends Controller
             res(null, $validator->messages()->first(), 'fail', 101);
         }
         #1.判断当前查询动态评论还是话题评论，获取博客下的所有一级评论:$p_ids
-        if ($data['subject_path'] == 1) {
-            //为空,代表他是动态 动态id为$arr['dy_id'] = $data['record_id'];
-            $p_ids = $comment->select('id')->where('dy_id',$data['record_id'])->get();
-        } else {
-            //不为空,代表是话题$arr['to_id'] = $data['record_id'];
-            $p_ids = $comment->select('id')->where('to_id',$data['record_id'])->get();
-        }
-        #2.找出数据库中评论的所有后代及本身
-        $all_com = $comment->select('id','parent_id')->get();
-        $id_arr = $comment->getChildrenIds($all_com, $p_ids);
-//        dump($id_arr);
-        #3.找出所有评论并排序
-        if(count($id_arr)){
+        if ($data['subject_path'] == 1) {//为空,代表他是动态 动态id为$arr['dy_id'] = $data['record_id'];
             $arr = $comment
-                ->select('comment.id','comment.member_id','comment.created_at','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content','comment.created_at','a.avatar','b.avatar AS p_avatar')
-                ->whereIn('comment.id',$id_arr)
+                ->select('comment.id','comment.member_id','comment.created_at','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content','comment.created_at','a.avatar','b.avatar AS p_avatar','comment.first_branch_id')
+                ->where('dy_id',$data['record_id'])
                 ->leftjoin('member AS a','a.id','=','comment.member_id')
                 ->leftjoin('member AS b','b.id','=','comment.p_mid')
-                ->get();
-            res($arr);
-        }else{
-            res(null);
+                ->orderBy('id')->get();
+
+        } else {//不为空,代表是话题$arr['to_id'] = $data['record_id'];
+            $arr = $comment
+                ->select('comment.id','comment.member_id','comment.created_at','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content','comment.created_at','a.avatar','b.avatar AS p_avatar','comment.first_branch_id')
+                ->where('to_id',$data['record_id'])
+                ->leftjoin('member AS a','a.id','=','comment.member_id')
+                ->leftjoin('member AS b','b.id','=','comment.p_mid')
+                ->orderBy('id')->get();
         }
+        $arr=$arr->groupBy('first_branch_id');
+        dump(obj_arr($arr));
+        res($arr);
+
+
+
+
+//        #1.判断当前查询动态评论还是话题评论，获取博客下的所有一级评论:$p_ids
+//        if ($data['subject_path'] == 1) {
+//            //为空,代表他是动态 动态id为$arr['dy_id'] = $data['record_id'];
+//            $p_ids = $comment->select('id')->where('dy_id',$data['record_id'])->get();
+//        } else {
+//            //不为空,代表是话题$arr['to_id'] = $data['record_id'];
+//            $p_ids = $comment->select('id')->where('to_id',$data['record_id'])->get();
+//        }
+//        #2.找出数据库中评论的所有后代及本身
+//        $all_com = $comment->select('id','parent_id')->get();
+//        $id_arr = $comment->getChildrenIds($all_com, $p_ids);
+////        dump($id_arr);
+//        #3.找出所有评论并排序
+//        if(count($id_arr)){
+//            $arr = $comment
+//                ->select('comment.id','comment.member_id','comment.created_at','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content','comment.created_at','a.avatar','b.avatar AS p_avatar','comment.first_branch_id')
+//                ->whereIn('comment.id',$id_arr)
+//                ->leftjoin('member AS a','a.id','=','comment.member_id')
+//                ->leftjoin('member AS b','b.id','=','comment.p_mid')
+//                ->get();
+//            res($arr);
+//        }else{
+//            res(null);
+//        }
     }
 
     /**

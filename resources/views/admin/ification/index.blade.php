@@ -39,7 +39,7 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[2,4,-1],[2,4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索

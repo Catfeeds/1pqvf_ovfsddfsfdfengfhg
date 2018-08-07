@@ -16,8 +16,9 @@
                     <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>所属分类：</label>
                     <div class="formControls col-xs-8 col-sm-9">
                         <select class="select" name="ification_id" id="ification_id">
-                            <option value="1" @if($merchantInfo->ification_id==1) selected @endif >美食</option>
-                            <option value="2" @if($merchantInfo->ification_id==2) selected @endif >娱乐</option>
+                            @foreach($ification as $v)
+                                <option value="{{ $v->id }}" @if(($merchantInfo->ification_id)==($v->id)) selected @endif>{{ $v->cate_name }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>

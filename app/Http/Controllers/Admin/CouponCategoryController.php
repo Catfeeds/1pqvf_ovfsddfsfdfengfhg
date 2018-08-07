@@ -17,22 +17,23 @@ class CouponCategoryController extends Controller
         return view('admin.coupon_category.index');
     }
 
-    public function create(Request $request, Merchant $merchant)
+    public function create(Merchant $merchant)
     {
         $data['merchantInfo'] = $merchant->select('id', 'nickname')->get();
         return view('admin.coupon_category.create', $data);
     }
 
-    public function store(Request $request, CouponCategory $coupon_category,Merchant $merchant)
+    public function store(Request $request, CouponCategory $coupon_category)
     {
         if (!$request->ajax()) {
             return ['status' => 'fail', 'error' => '非法的请求类型'];
         }
-        $data = $request->only('coupon_name','merchant_id','coupon_type','coupon_money','spend_money','send_start_at','send_end_at','deduction_url','picture_url', 'coupon_type','content');
+        $data = $request->only('merchant_id','coupon_name','coupon_explain','coupon_type','coupon_money','spend_money','send_start_at','send_end_at','deduction_url','picture_url', 'coupon_type','content');
         $role = [
             'coupon_name' => 'required|string|between:2,12',
+            'coupon_explain' => 'required',
             'merchant_id' => 'exists:merchant,id',
-            'coupon_type' => 'required|integer|between:1,5',
+            'coupon_type' => 'required|integer|between:0,5',
             'coupon_money' => 'required|numeric',
             'spend_money' => 'nullable|sometimes|numeric',
             'send_start_at' => 'required|date',
@@ -42,6 +43,7 @@ class CouponCategoryController extends Controller
         ];
         $message = [
             'coupon_name.required' => '必须填写优惠券名称',
+            'coupon_explain.required' => '必须填写优惠券说明',
             'coupon_name.string' => '优惠券名称不合法',
             'coupon_name.between' => '优惠券名称字节长度为2到12位',
             'merchant_id.exists' => '商家不存在！',
@@ -90,8 +92,8 @@ class CouponCategoryController extends Controller
                 return ['status' => 'fail', 'msg' => '图片储存失败'];
         }
         $data['deduction_url'] = $res;
-        $merchant_name = $merchant->select('nickname')->where('id',$data['merchant_id'])->first()->toArray();
-        $data['merchant_name'] = $merchant_name['nickname'];
+//        $data['coupon_explain'] = json_encode(preg_split('/\s+/', trim($data['coupon_explain'])),JSON_UNESCAPED_UNICODE);//处理富文本为数组 并转json保存
+        dump($data);die();
         $res = $coupon_category->create($data);
         if ($res->id) {
             return ['status' => 'success', 'msg' => '添加成功'];
@@ -102,7 +104,8 @@ class CouponCategoryController extends Controller
     public function ajax_list(Request $request, couponcategory $couponcategory)
     {
         if ($request->ajax()) {
-            $data = $couponcategory->with('merchant')->select('id', 'merchant_id','coupon_name', 'coupon_money', 'deduction_url', 'picture_url', 'coupon_type')->get();
+            $data = $couponcategory->with('merchant')
+                ->select('coupon_category.id', 'coupon_category.merchant_id','coupon_category.coupon_name', 'coupon_category.coupon_money', 'coupon_category.deduction_url', 'coupon_category.picture_url', 'coupon_category.coupon_type','coupon_category.coupon_explain','coupon_category.send_start_at','coupon_category.send_end_at','coupon_category.send_num')->get();
             $cnt = count($data);
             $info = [
                 'draw' => $request->get('draw'),
@@ -118,6 +121,8 @@ class CouponCategoryController extends Controller
     {
         $data['merchantInfo'] = $merchant->select('id', 'nickname')->get();
         $data['pictureInfo'] = $coupon_category;
+        $data['pictureInfo']['coupon_explain'] =  implode('\r\n',json_decode($data['pictureInfo']['coupon_explain'],true));
+//        dump( obj_arr($data) );
         return view('admin.coupon_category.edit', $data);
     }
 
@@ -126,11 +131,12 @@ class CouponCategoryController extends Controller
         if (!$request->ajax()) {
             return ['status' => "fail", 'error' => "非法的请求类型"];
         }
-        $data = $request->only('coupon_name','merchant_id','coupon_type','coupon_money','spend_money','send_start_at','send_end_at','deduction_url','picture_url', 'coupon_type','content');
+        $data = $request->only('coupon_name','merchant_id','coupon_type','coupon_money','spend_money','send_start_at','send_end_at','deduction_url','picture_url', 'coupon_type','content','coupon_explain');
         $role = [
             'coupon_name' => 'string|between:2,12',
+            'coupon_explain' => 'required',
             'merchant_id' => 'exists:merchant,id',
-            'coupon_type' => 'integer|between:1,5',
+            'coupon_type' => 'integer|between:0,5',
             'coupon_money' => 'numeric',
             'spend_money' => 'nullable|sometimes|numeric',
             'send_start_at' => 'nullable|date',
@@ -140,6 +146,7 @@ class CouponCategoryController extends Controller
         ];
         $message = [
             'coupon_name.string' => '优惠券名称不合法',
+            'coupon_explain.required' => '必须填写优惠券说明',
             'coupon_name.between' => '优惠券名称字节长度为2到12位',
             'merchant_id.exists' => '商家不存在！',
             'coupon_money.numeric' => '优惠券面额不正确！',
@@ -203,6 +210,7 @@ class CouponCategoryController extends Controller
             unset($data['deduction_url']);
         }
         $data = array_filter($data);//为空的是不更新的部分
+        $data['coupon_explain'] = json_encode(explode('\r\n', $data['coupon_explain']),JSON_UNESCAPED_UNICODE);
         // 更新数据
         $res = $coupon_category->update($data);
         if ($res) {

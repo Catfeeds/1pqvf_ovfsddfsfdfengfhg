@@ -24,13 +24,41 @@
                 <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>优惠券类型：</label>
                 <div class="formControls col-xs-8 col-sm-9 skin-minimal">
                     <div class="radio-box">
+                        <input name="coupon_type" type="radio" value="0" id="status-1" >
+                        <label for="status-1">现金</label>
+                    </div>
+                    <div class="radio-box">
+                        <input name="coupon_type" type="radio" value="1" id="status-2" >
+                        <label for="status-2">减免</label>
+                    </div>
+                    <div class="radio-box">
                         <input name="coupon_type" type="radio" value="2" id="status-3"  checked>
                         <label for="status-3">折扣</label>
                     </div>
                     <div class="radio-box">
-                        <input name="coupon_type" type="radio" value="1" id="status-4" >
-                        <label for="status-4">减免金额</label>
+                        <input name="coupon_type" type="radio" value="3" id="status-4" >
+                        <label for="status-4">其他</label>
                     </div>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3">优惠券图片：</label>
+                <div class="formControls col-xs-8 col-sm-9" >
+                    <span class="btn-upload form-group">
+                      <input class="input-text upload-url radius" type="text" name="uploadfile-1" id="uploadfile-1" readonly>
+                                            <a href="javascript:void();" class="btn btn-secondary radius">浏览文件</a>
+                      <input type="file" multiple name="picture_url" class="input-file">
+                    </span>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3">抵扣券图片：</label>
+                <div class="formControls col-xs-8 col-sm-9" >
+                    <span class="btn-upload form-group">
+                      <input class="input-text upload-url radius" type="text" name="uploadfile-1" id="uploadfile-1" readonly>
+                                            <a href="javascript:void();" class="btn btn-secondary radius">浏览文件</a>
+                      <input type="file" multiple name="deduction_url" class="input-file">
+                    </span>
                 </div>
             </div>
             <div class="row cl">
@@ -58,29 +86,15 @@
                 </div>
             </div>
             <div class="row cl">
-                <label class="form-label col-xs-4 col-sm-3">优惠券图片：</label>
-                <div class="formControls col-xs-8 col-sm-9" >
-                    <span class="btn-upload form-group">
-                      <input class="input-text upload-url radius" type="text" name="uploadfile-1" id="uploadfile-1" readonly>
-                                            <a href="javascript:void();" class="btn btn-secondary radius">浏览文件</a>
-                      <input type="file" multiple name="picture_url" class="input-file">
-                    </span>
-                </div>
-            </div>
-            <div class="row cl">
-                <label class="form-label col-xs-4 col-sm-3">抵扣券图片：</label>
-                <div class="formControls col-xs-8 col-sm-9" >
-                    <span class="btn-upload form-group">
-                      <input class="input-text upload-url radius" type="text" name="uploadfile-1" id="uploadfile-1" readonly>
-                                            <a href="javascript:void();" class="btn btn-secondary radius">浏览文件</a>
-                      <input type="file" multiple name="deduction_url" class="input-file">
-                    </span>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>使用说明：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <textarea name="coupon_explain" rows="5" cols='140' style="vertical-align:baseline;"></textarea>
                 </div>
             </div>
             <div class="row cl" id="" >
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>描述：</label>
+                <label class="form-label col-xs-4 col-sm-3">备注：</label>
                 <div class="formControls col-xs-8 col-sm-9">
-                    <input type="text" class="input-text"  placeholder="备注" id="note" name="content">
+                    <input type="text" class="input-text"  placeholder="备注" id="note" name="cp_cate_note">
                 </div>
             </div>
             <div class="row cl">
@@ -102,6 +116,7 @@
     <!--请在下方写此页面业务相关的脚本-->
     <script>
         $(function(){
+
             $('.skin-minimal input').iCheck({
                 checkboxClass: 'icheckbox-blue',
                 radioClass: 'iradio-blue',

@@ -418,7 +418,7 @@ function Obtain_a_single_warp($key,$n){
 }
 
 /**
- * 调整生成随机经纬度的值
+ * 调整生成随机经纬度的值及字符串长度
  * @param $lng 经纬度
  * @param $lat
  * @param $n   要生成的数量
@@ -623,7 +623,7 @@ function force_download($file){
 }
 
 /**
- * 返回经纬度
+ * 返回固定长度的经纬度
  * $type 1：一个地址生成多个 其他：多个地址生成多个
  * @param $type
  * @param $address

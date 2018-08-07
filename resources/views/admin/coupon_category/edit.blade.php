@@ -25,37 +25,21 @@
                     <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>优惠券类型：</label>
                     <div class="formControls col-xs-8 col-sm-9 skin-minimal">
                         <div class="radio-box">
-                            <input name="coupon_type" type="radio" value="2" id="status-3"  @if($pictureInfo->coupon_type==2) checked @endif>
+                            <input name="coupon_type" type="radio" value="0" id="status-1" >
+                            <label for="status-1">现金</label>
+                        </div>
+                        <div class="radio-box">
+                            <input name="coupon_type" type="radio" value="1" id="status-2" >
+                            <label for="status-2">减免</label>
+                        </div>
+                        <div class="radio-box">
+                            <input name="coupon_type" type="radio" value="2" id="status-3"  checked>
                             <label for="status-3">折扣</label>
                         </div>
                         <div class="radio-box">
-                            <input name="coupon_type" type="radio" value="1" id="status-4" @if($pictureInfo->coupon_type==1) checked @endif>
-                            <label for="status-4">减免金额</label>
+                            <input name="coupon_type" type="radio" value="3" id="status-4" >
+                            <label for="status-4">其他</label>
                         </div>
-                    </div>
-                </div>
-                <div class="row cl">
-                    <label class="form-label col-xs-4 col-sm-3">折扣/优惠面额：</label>
-                    <div class="formControls col-xs-8 col-sm-9">
-                        <input type="text" class="input-text" value="{{ $pictureInfo->coupon_money  }}"  placeholder="如果是折扣,请直接填写折扣率(如9.5),金额则直接填写数字(单位元,如30)" id="price" name="coupon_money">
-                    </div>
-                </div>
-                <div class="row cl">
-                    <label class="form-label col-xs-4 col-sm-3">最低消费金额：</label>
-                    <div class="formControls col-xs-8 col-sm-9">
-                        <input type="text" class="input-text"  placeholder="如满100减20，填写100即可" id="spend_money" name="spend_money" value="{{ $pictureInfo->spend_money  }}">
-                    </div>
-                </div>
-                <div class="row cl" id="hidden_t" name="xz" >
-                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>开始发放时间：</label>
-                    <div class="formControls col-xs-8 col-sm-9">
-                        <input type="datetime-local" class="input-text"  placeholder="开始发放时间" id="send_start_at" name="send_start_at" ><br/>
-                        <font size="1" color="red">*开始时间务必为00:00  例如：2018/10/1 00:00</font>
-                    </div>
-                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>结束发放时间：</label>
-                    <div class="formControls col-xs-8 col-sm-9">
-                        <input type="datetime-local" class="input-text"  placeholder="结束发放时间" id="send_end_at" name="send_end_at" style="margin-top: 5px;"><br/>
-                        <font size="1" color="red">*结束时间务必为23:59  例如：2018/10/31 23:59</font>
                     </div>
                 </div>
                 <div class="row cl">
@@ -84,10 +68,40 @@
                         <input type="hidden" name="old_img2" value="{{$pictureInfo->deduction_url}}">
                     </div>
                 </div>
-                <div class="row cl" id="" >
-                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>描述：</label>
+                <div class="row cl">
+                    <label class="form-label col-xs-4 col-sm-3">折扣/优惠面额：</label>
                     <div class="formControls col-xs-8 col-sm-9">
-                        <input type="text" class="input-text"  placeholder="备注" id="note" name="content"  value="{{$pictureInfo->note}}" />
+                        <input type="text" class="input-text" value="{{ $pictureInfo->coupon_money  }}"  placeholder="如果是折扣,请直接填写折扣率(如9.5),金额则直接填写数字(单位元,如30)" id="price" name="coupon_money">
+                    </div>
+                </div>
+                <div class="row cl">
+                    <label class="form-label col-xs-4 col-sm-3">最低消费金额：</label>
+                    <div class="formControls col-xs-8 col-sm-9">
+                        <input type="text" class="input-text"  placeholder="如满100减20，填写100即可" id="spend_money" name="spend_money" value="{{ $pictureInfo->spend_money  }}">
+                    </div>
+                </div>
+                <div class="row cl" id="hidden_t" name="xz" >
+                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>开始发放时间：</label>
+                    <div class="formControls col-xs-8 col-sm-9">
+                        <input type="datetime-local" class="input-text"  placeholder="开始发放时间" id="send_start_at" name="send_start_at" ><br/>
+                        <font size="1" color="red">*开始时间务必为00:00  例如：2018/10/1 00:00</font>
+                    </div>
+                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>结束发放时间：</label>
+                    <div class="formControls col-xs-8 col-sm-9">
+                        <input type="datetime-local" class="input-text"  placeholder="结束发放时间" id="send_end_at" name="send_end_at" style="margin-top: 5px;"><br/>
+                        <font size="1" color="red">*结束时间务必为23:59  例如：2018/10/31 23:59</font>
+                    </div>
+                </div>
+                <div class="row cl">
+                    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>使用说明：</label>
+                    <div class="formControls col-xs-8 col-sm-9">
+                        <textarea name="coupon_explain" value="" rows="5" cols='140' style="vertical-align:baseline;">{{$pictureInfo->coupon_explain}}</textarea>
+                    </div>
+                </div>
+                <div class="row cl" id="" >
+                    <label class="form-label col-xs-4 col-sm-3">备注：</label>
+                    <div class="formControls col-xs-8 col-sm-9">
+                        <input type="text" class="input-text"  placeholder="备注" id="note" name="cp_cate_note" value="{{$pictureInfo->cp_cate_note}}">
                     </div>
                 </div>
                 <div class="row cl">

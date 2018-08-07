@@ -21,7 +21,7 @@ class Inform extends Model
      */
     public function msm_inf($member_id)
     {
-        is_numeric( $member_id ) or die('提供的参数不是数字');
+        is_numeric( $member_id ) or die('发送提醒失败：提供的参数不是数字');
         //查看系统初始化是否存在inf_path=2的数据，
         $has_path_2 = DB::table('inform')->where('inf_path',2)->first();
         //不存在就新增该条数据

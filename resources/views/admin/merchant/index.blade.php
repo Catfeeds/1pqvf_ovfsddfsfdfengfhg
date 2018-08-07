@@ -42,7 +42,7 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[2,4,-1],[2,4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         "displayLength":10,//默认一页显示的数量
         'paging':true,//分页
         'info':true,//分页辅助
@@ -81,7 +81,7 @@
             var cnt = data.recordsFiltered;
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
-            $(row).find('td:eq(2)').html(data.ification_id == 1 ? '美食' : '娱乐');
+            $(row).find('td:eq(2)').html(data.cate_name);
             $(row).find('td:eq(-4)').html(data.store_image == null ? '店铺图片找不到了' : '<img src="/'+ data.store_image +'" style="width: 50px;height: 30px;">');
             $(row).find('td:eq(6)').html(data.img_url == null ? '图片找不到了' : '<img src="/'+ data.img_url +'" style="width: 50px;height: 30px;">');
             $(row).find('td:eq(7)').html(data.avatar == null ? '头像找不到了' : '<img src="/'+ data.avatar +'" style="width: 50px;height: 30px;">');
