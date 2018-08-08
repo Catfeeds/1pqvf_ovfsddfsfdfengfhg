@@ -393,7 +393,7 @@ class CommentController extends Controller
         }
         #1.判断当前查询动态评论还是话题评论，获取博客下的所有一级评论:$p_ids
         if ($data['subject_path'] == 1) {//为空,代表他是动态 动态id为$arr['dy_id'] = $data['record_id'];
-            $arr = $comment
+            $res = $comment
                 ->select('comment.id','comment.member_id','comment.created_at','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content','comment.created_at','a.avatar','b.avatar AS p_avatar','comment.first_branch_id')
                 ->where('dy_id',$data['record_id'])
                 ->leftjoin('member AS a','a.id','=','comment.member_id')
@@ -401,19 +401,34 @@ class CommentController extends Controller
                 ->orderBy('id')->get();
 
         } else {//不为空,代表是话题$arr['to_id'] = $data['record_id'];
-            $arr = $comment
+            $res = $comment
                 ->select('comment.id','comment.member_id','comment.created_at','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content','comment.created_at','a.avatar','b.avatar AS p_avatar','comment.first_branch_id')
                 ->where('to_id',$data['record_id'])
                 ->leftjoin('member AS a','a.id','=','comment.member_id')
                 ->leftjoin('member AS b','b.id','=','comment.p_mid')
                 ->orderBy('id')->get();
         }
-        $arr=$arr->groupBy('first_branch_id');
+
+        # 找出所有一级评论，子评论放在branch_members下标中
+        $first_branch = [];//所有一级评论的集合
+        foreach ($res as $key => $val){
+            //数据调整
+            $val['avatar'] = config('app.url').$val['avatar'];
+            $val['p_avatar'] = config('app.url').$val['p_avatar'];
+            if($val['parent_id'] == null){
+                $first_branch[] = $val;//一级评论
+                unset($res[$key]);
+            }
+        }
+        # 数据分组，拼接数据
+        $branch_members=$res->groupBy('first_branch_id');
+        $arr = [];
+        foreach ($first_branch as $k => $v){
+            $arr[$k] = $v;
+            $arr[$k]['branch_members'] =  empty($branch_members[$v['id']]) ? null : $branch_members[$v['id']];
+        }
         dump(obj_arr($arr));
         res($arr);
-
-
-
 
 //        #1.判断当前查询动态评论还是话题评论，获取博客下的所有一级评论:$p_ids
 //        if ($data['subject_path'] == 1) {
