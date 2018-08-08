@@ -130,9 +130,9 @@
                     var reg=/"/g;
                     arr[i] = arr[i].replace(reg,'');
                     if($(row).find('td:eq(-3)').html() != null && $(row).find('td:eq(-3)').html() != '暂无'){
-                        $(row).find('td:eq(-3)').append('<img style="width: 100px;" src="/'+ arr[i] +'">');
+                        $(row).find('td:eq(-3)').append('<img style="width:50px;height:40px;" src="/'+ arr[i] +'">');
                     }else{
-                        $(row).find('td:eq(-3)').html('<img style="width: 100px;" src="/'+ arr[i] +'">');
+                        $(row).find('td:eq(-3)').html('<img style="width:50px;height:40px;" src="/'+ arr[i] +'">');
                     }
                 }
             }

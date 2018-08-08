@@ -21,7 +21,7 @@ class CreateCouponModelTable extends Migration
             $table->unsignedInteger('merchant_id')->comment('所属商家');
             $table->string('coupon_name',60)->comment('优惠券名称');
             $table->string('coupon_explain',255)->comment('使用说明');
-            $table->unsignedTinyInteger('coupon_type')->nullable()->comment('优惠方式:0代金券,1满减,2折扣,3其他');
+            $table->unsignedTinyInteger('coupon_type')->comment('优惠券类型:0代金券,1满减,2折扣,3其他');
             $table->string('coupon_money',255)->nullable()->comment('优惠券面额或折扣额');
             $table->unsignedInteger('spend_money')->nullable()->comment('最低消费金额');
             $table->timestamp('send_start_at')->comment('发放开始时间，根据合同');
@@ -30,14 +30,14 @@ class CreateCouponModelTable extends Migration
             $table->unsignedInteger('send_num')->nullable()->comment('该券已发放的总量');
             $table->string('picture_url',255)->nullable()->comment('该券的图片');
             $table->string('deduction_url',255)->nullable()->comment('抵扣后的图片');
-            $table->text('cp_cate_note',255)->nullable()->comment('备注');
+            $table->text('cp_cate_note')->nullable()->comment('备注');
             $table->timestamps();
             $table->softDeletes();
             $table->foreign('merchant_id')->references('id')->on('merchant') ->onUpdate('cascade')->onDelete('cascade');
         });
         // 优惠券列表
         Schema::create('coupon',function(Blueprint $table){
-            // 声明表结构
+            # 声明表结构
             $table->engine = 'InnoDB';
             $table->increments('id')->comment('主键');
             $table->unsignedInteger('cp_cate_id')->comment('所属优惠券,对应coupon_category中的id');
@@ -60,8 +60,9 @@ class CreateCouponModelTable extends Migration
             $table->string('uuid',36)->comment('优惠券编号/排序字段');
             $table->timestamps();
             $table->index('uuid');
-            //外键约束
-            $table->foreign('cp_cate_id')->references('id')->on('coupon_category') ->onUpdate('cascade')->onDelete('cascade');//如果coupon_category更新该数据库cp_cate_id也更新，如果删除同样也删除
+            # 外键约束 如果coupon_category更新该数据库cp_cate_id也更新，如果删除同样也删除
+            $table->foreign('cp_cate_id')->references('id')->on('coupon_category') ->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('member_id')->references('id')->on('member') ->onUpdate('cascade')->onDelete('cascade');
         });
     }
 
@@ -75,5 +76,6 @@ class CreateCouponModelTable extends Migration
         Schema::dropIfExists('coupon');
         Schema::dropIfExists('coupon_category');
         Schema::dropIfExists('merchant');
+        Schema::dropIfExists('member');
     }
 }

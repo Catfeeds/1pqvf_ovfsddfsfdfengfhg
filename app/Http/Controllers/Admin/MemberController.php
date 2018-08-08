@@ -89,7 +89,7 @@ class MemberController extends Controller
     public function ajax_list(Request $request, Member $member, Admin $admin)
     {
         if ($request->ajax()) {
-            $data = $member->select('id', 'phone', 'nickname', 'avatar', 'sex', 'age', 'integral', 'qr_code', 'friends_id', 'fans_id', 'attention_id', 'coupon_id', 'tesco', 'disabled_at')
+            $data = $member->select('id', 'phone', 'nickname', 'avatar', 'sex', 'age', 'integral', 'qr_code', 'friends_id', 'fans_id', 'attention_id', 'tesco', 'disabled_at','city')
                 ->get()->toArray();
             $arr = $data;
             if (!empty($data[0])) {

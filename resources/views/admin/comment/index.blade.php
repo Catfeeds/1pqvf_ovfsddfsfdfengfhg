@@ -13,7 +13,7 @@
 			<tr class="text-c">
 				<th width="">ID</th>
                 <th width="">评论所属</th>
-                <th width="">被评论的记录</th>
+                <th width="">回复的id</th>
 				<th width="">评论人</th>
                 <th width="">评论的内容</th>
                 <th width="">评论的时间</th>
@@ -36,7 +36,7 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[2,4,-1],[2,4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索
@@ -59,7 +59,7 @@
         'columns':[
             {'data':'id',"defaultContent": ""},
             {'data':'dy_id',"defaultContent": ""},
-            {'data':'',"defaultContent": "找不到"},
+            {'data':'parent_id',"defaultContent": "找不到"},
             {'data':'member.nickname',"defaultContent": "暂无"},
             {'data':'',"defaultContent": ""},
             {'data':'created_at',"defaultContent": ""},

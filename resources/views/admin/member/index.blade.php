@@ -20,12 +20,12 @@
                 <th width="">头像</th>
                 <th width="">性别</th>
                 <th width="">年龄</th>
+                <th width="">所在城市</th>
                 <th width="">积分</th>
                 <th width="">二维码</th>
                 <th width="">关注</th>
                 <th width="">粉丝</th>
                 <th width="">关注的商家</th>
-                <th width="">持有优惠券</th>
                 <th width="">已购的商品</th>
                 <th width="">禁用状态</th>
                 <th width="">操作</th>
@@ -44,12 +44,12 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[2,4,-1],[2,4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索
         'ordering':true,//启用排序
-        "order": [[ 1, "desc" ]],//排序规则  默认下标为1的显示倒序
+        "order": [[ 0, "desc" ]],//排序规则  默认下标为1的显示倒序
         "stateSave": false,//使用状态.是否保持 默认true
         "processing": false,//是否显示数据在处理中的状态
         "serverSide": false,//是否开启服务端
@@ -71,12 +71,12 @@
             {'data':'avatar',"defaultContent": ""},
             {'data':'sex',"defaultContent": ""},
             {'data':'age',"defaultContent": ""},
+            {'data':'city',"defaultContent": ""},
             {'data':'integral',"defaultContent": ""},
             {'data':'qr_code',"defaultContent": ""},
             {'data':'',"defaultContent": ""},
             {'data':'',"defaultContent": ""},
             {'data':'attention_id',"defaultContent": ""},
-            {'data':'coupon_id',"defaultContent": ""},
             {'data':'tesco',"defaultContent": ""},
             {'data':'disabled_at',"defaultContent": ""},
             {'data':'b',"defaultContent": ""},
@@ -87,9 +87,9 @@
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
             $(row).find('td:eq(-2)').html(data.disabled_at < 1 ? '启用' : '禁用');//z状态
-            $(row).find('td:eq(3)').html(data.avatar == null ? '还没有头像' : '<img src="/'+ data.avatar +'" style="width: 100px;height: 80px;">');//z状态asset('storage/file.txt');
-            $(row).find('td:eq(8)').html( '<input class="btn radius btn-secondary" onclick="showfriends_nicknam( \''+ data.friends_nickname +'\' )" type="button" value="查看">' );// 使用状态 1:未使用,2:已使用,3:过期
-            $(row).find('td:eq(9)').html( '<input class="btn radius btn-secondary" onclick="showfans_nickname( \''+ data.fans_nickname +'\' )" type="button" value="查看">' );// 使用状态 1:未使用,2:已使用,3:过期
+            $(row).find('td:eq(3)').html(data.avatar == null ? '还没有头像' : '<img src="/'+ data.avatar +'" style="width: 50px;height: 40px;">');//z状态asset('storage/file.txt');
+            $(row).find('td:eq(9)').html( '<input class="btn radius btn-secondary" onclick="showfriends_nicknam( \''+ data.friends_nickname +'\' )" type="button" value="查看">' );// 使用状态 1:未使用,2:已使用,3:过期
+            $(row).find('td:eq(10)').html( '<input class="btn radius btn-secondary" onclick="showfans_nickname( \''+ data.fans_nickname +'\' )" type="button" value="查看">' );// 使用状态 1:未使用,2:已使用,3:过期
             $(row).find('td:eq(4)').html(data.sex == 1 ? '女' : data.sex == 2 ? '男':'保密');//z状态
             //操作
             $(row).find('td:eq(-1)').html('<a title="编辑" href="javascript:;" onclick="member_edit(' +

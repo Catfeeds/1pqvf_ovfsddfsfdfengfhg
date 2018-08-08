@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Activity;
 use App\Models\ActMall;
+use App\Models\ActOne;
 use App\Models\Member;
 use App\Models\Perseverance;
 use App\Models\Health;
@@ -348,12 +349,13 @@ class ActivityController extends Controller
     }
 
     /**
-     * 赛事接口 排行->赛事首页
+     * 赛事接口 排行->赛事首页:所有赛事列表
      */
     public function activity(Request $request, Activity $activity)
     {
         //先查出所有活动(进行中,结束,活动封面,id)
-        $res = $activity->orderBy('id', 'DESC')->select('end_at', 'id', 'img_url', 'title')->get();
+        $res = $activity->select('end_at', 'id', 'img_url', 'title')->where('status','1')->get();
+//        dump($res);exit();
         //返回  进行中(如果时间没超出=HOT),如果结束时间已经超出当前时间(END)
         $time = time();
         foreach ($res as $key => $val) {
@@ -486,7 +488,7 @@ class ActivityController extends Controller
         if ($validator->fails()) {
             res(null, $validator->messages()->first(), 'fail', 101);
         }
-        if ($data['activity_id'] == 1) {//当前活动为健康达人$health
+        if ($data['activity_id'] == 1) {
             //当达到活动状态=达成的时候
             $res = $activity->with('actmall')->select('note', 'title', 'content', 'actMall_id', 'man_num', 'top_img_url')->where(['id' => $data['activity_id']])->first();
             $res2 = $health->select('total', 'status')->where(['member_id' => $data['member_id']])->first();
@@ -519,7 +521,8 @@ class ActivityController extends Controller
                 'status2' => $status2,//报名状态,1=已报名,2=未报名
             ];
             res($result);
-        } elseif ($data['activity_id'] == 2) {//2代表活动为毅力使者时$perseverance
+        } elseif ($data['activity_id'] == 2) {
+            //返回毅力使者
             $res = $activity->with('actmall')->select('note', 'title', 'top_img_url', 'content', 'actMall_id', 'man_num', 'actMall_num')->where(['id' => $data['activity_id']])->first();
             $res2 = $perseverance->select('total_steps', 'punch_d', 'status', 'status2')->where(['member_id' => $data['member_id']])->first();
             $time = date('Ymd', time());
@@ -582,7 +585,8 @@ class ActivityController extends Controller
                 'status2' => $status2,//打卡状态, 1=已打卡,2=未打卡
             ];
             res($data);
-        } elseif ($data['activity_id'] == 3) {//3表示当前活动为夺旗先锋时 $takeFlag
+        } elseif ($data['activity_id'] == 3) {
+            //返回夺旗先锋
             $res = $takeFlag->select('id', 'flag_num', 'status')->where(['member_id' => $data['member_id']])->first();
             //  赛事封面图,赛事简介,赛事说明,赛事标题,报名人数,剩余天数,我的旗子,奖品图片,奖品note
             $res2 = $activity->with('actmall')->select('note', 'title', 'top_img_url', 'content', 'actMall_id', 'end_at', 'start_at')->where(['id' => $data['activity_id']])->first();
@@ -595,8 +599,8 @@ class ActivityController extends Controller
                     $ids[] = $val['member_id'];
                 }
                 if (!empty($ids)) {
-                    $temp_data1 = DB::update(DB::raw("update pq_takeFlag set status=1 where member_id in ($ids[0],$ids[1],$ids[2])"));
-                    $temp_data2 = DB::update(DB::raw("update pq_takeFlag set status=2 where member_id not in ($ids[0],$ids[1],$ids[2])"));
+                    $temp_data1 = DB::update(DB::raw("update pq_takeflag set status=1 where member_id in ($ids[0],$ids[1],$ids[2])"));
+                    $temp_data2 = DB::update(DB::raw("update pq_takeflag set status=2 where member_id not in ($ids[0],$ids[1],$ids[2])"));
                 }
             } else {
                 //否则,说明还没到结束时间,那么状态为3,时间为剩余天数
@@ -811,18 +815,19 @@ class ActivityController extends Controller
 
     /**
      * 赛事报名接口
+     * activity_id 1为健康达人；2毅力使者；3夺旗先锋；4活动一
      */
-    public function enrols(Request $request, Health $health, TakeFlag $takeFlag, Member $member, Activity $activity)
+    public function enrols(Request $request, Health $health, TakeFlag $takeFlag, Member $member, Activity $activity,ActOne $act_one)
     {
         //判断是健康达人还是夺旗先锋
         $data = $request->only('member_id', 'activity_id');
         $role = [
-            'member_id' => 'required',
-            'activity_id' => 'required',
+            'member_id' => 'exists:member,id',
+            'activity_id' => 'exists:activity,id',
         ];
         $message = [
-            'member_id.required' => '用户id不能为空！',
-            'activity_id.required' => '赛事id不能为空！',
+            'member_id.exists' => '用户id不合法！',
+            'activity_id.exists' => '赛事id不合法！',
         ];
         //过滤信息
         $validator = Validator::make($data, $role, $message);
@@ -840,7 +845,7 @@ class ActivityController extends Controller
             $time1 = strtotime($activity_num['start_at']);
             $time2 = strtotime($activity_num['end_at']);
             $time3 = time();
-            if ($time3 < $time1 || $time3 > $time2) {
+            if (! ($time3 >$time1 && $time3 < $time2)) {
                 res(null, '不在活动时间内', 'fail', 104);
             } elseif ($activity_num['man_num'] >= 3000) {
                 res(null, '名额已满', 'fail', 105);
@@ -886,7 +891,7 @@ class ActivityController extends Controller
             $time1 = strtotime($activity_num['start_at']);
             $time2 = strtotime($activity_num['end_at']);
             $time3 = time();
-            if ($time3 < $time1 || $time3 > $time2) {
+            if (! ($time3 >$time1 && $time3 < $time2)) {
                 res(null, '不在活动时间内', 'fail', 104);
             }
             //查询并返回
@@ -918,6 +923,33 @@ class ActivityController extends Controller
                     res(null, '报名失败', 'fail', 100);
                 }
             });
+        }else if ($data['activity_id'] == 4) {//活动一报名
+            //查询是否在活动时间内
+            $activity_num = $activity->select('man_num', 'start_at', 'end_at')->where('id',$data['activity_id'])->first();
+            $time1 = strtotime($activity_num['start_at']);//开始时间
+            $time2 = strtotime($activity_num['end_at']);//结束时间
+            $time3 = time();
+            if (! ($time3 >$time1 && $time3 < $time2)) {
+                res(null, '不在活动时间内', 'fail', 104);
+            }
+            //查询是否已报名
+            $res = $act_one->where('member_id',$data['member_id'])->first();
+            if ($res != null) {
+                res(null, '您已报名', 'success', 202);
+            }
+            //参与总人数加1
+            $num = $activity_num['man_num'] + 1;
+            $activity->where('id', $data['activity_id'])->update(['man_num' => $num]);
+            //无需积分报名
+            $data['cost'] = 0;
+            $data['status'] = 2;
+            $data['flag_num'] = 0;
+            $total_res = $act_one->create($data);
+            if ($total_res) {
+                res(null, '报名成功');
+            } else {
+                res(null, '报名失败', 'fail', 100);
+            }
         } else {
             res(null, '该赛事id没有对应的活动', 'fail', 101);
         }

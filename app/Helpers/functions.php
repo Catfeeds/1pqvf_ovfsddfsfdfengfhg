@@ -809,7 +809,7 @@ function url_prefix($v)
 }
 
 /**
- * 计算二维数组下的某个元素的值
+ * 计算二维数组下的某个元素的值转化为多久之前
  * @param $arr_2d
  * @param $key
  * @return mixed

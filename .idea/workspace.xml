@@ -4,24 +4,18 @@
     <list default="true" id="99d5e1d7-caa2-40bb-97a7-d6218a3ba08a" name="默认的" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Helpers/functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Helpers/functions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ActivityController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ActivityController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/CommentController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/CommentController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/CouponCategoryController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/CouponCategoryController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/CouponController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/CouponController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/DynamicController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/DynamicController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/MerchantController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/MerchantController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Models/Comment.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Comment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Models/Coupon.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Coupon.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Models/CouponCategory.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/CouponCategory.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Models/Inform.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Inform.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/MemberController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/MemberController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Models/Activity.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Activity.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2017_10_27_072535_create_member_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_10_27_072535_create_member_table.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_07_030504_create_coupon_model_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_07_030504_create_coupon_model_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_09_063053_create_comment_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_09_063053_create_comment_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/admin/coupon_category/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/coupon_category/create.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/admin/coupon_category/edit.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/coupon_category/edit.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/admin/coupon_category/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/coupon_category/index.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/admin/ification/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/ification/index.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/admin/merchant/create.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/merchant/create.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/admin/merchant/edit.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/merchant/edit.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/admin/merchant/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/merchant/index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_08_083029_create_activity_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_08_083029_create_activity_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/admin/comment/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/comment/index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/admin/dynamic/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/dynamic/index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/admin/member/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/member/index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/admin/topic/index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/admin/topic/index.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/LICENSE" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/src/Hyperbolaa/Alisms/Facades/AlismsApi.php" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/src/Hyperbolaa/Alisms/Facades/AlismsApi.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/src/Hyperbolaa/Alisms/Facades/AlismsNote.php" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/src/Hyperbolaa/Alisms/Facades/AlismsNote.php" afterDir="false" />
@@ -43,29 +37,30 @@
     <session id="-819333455">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="11" />
+          <entry key="project.closed" value="14" />
           <entry key="project.open.time.10" value="1" />
           <entry key="project.open.time.11" value="1" />
           <entry key="project.open.time.19" value="1" />
-          <entry key="project.open.time.20" value="1" />
-          <entry key="project.open.time.23" value="3" />
+          <entry key="project.open.time.20" value="2" />
+          <entry key="project.open.time.23" value="4" />
           <entry key="project.open.time.24" value="1" />
           <entry key="project.open.time.26" value="1" />
+          <entry key="project.open.time.4" value="1" />
           <entry key="project.open.time.6" value="1" />
           <entry key="project.open.time.7" value="1" />
-          <entry key="project.opened" value="11" />
+          <entry key="project.opened" value="14" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.js.language.service.starts" />
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Blade" value="372" />
-          <entry key="PHP" value="1657" />
+          <entry key="Blade" value="429" />
+          <entry key="PHP" value="2913" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="php" value="2029" />
+          <entry key="php" value="3342" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.php.composer.actions" />
@@ -75,7 +70,7 @@
           <entry key="env" value="1" />
           <entry key="js" value="3" />
           <entry key="json" value="1" />
-          <entry key="php" value="73" />
+          <entry key="php" value="93" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.php.new.class" />
@@ -83,10 +78,10 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key=".env file" value="1" />
-          <entry key="Blade" value="21" />
+          <entry key="Blade" value="27" />
           <entry key="JSON" value="1" />
           <entry key="JavaScript" value="3" />
-          <entry key="PHP" value="52" />
+          <entry key="PHP" value="66" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.php.new.test" />
@@ -97,20 +92,11 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>nice</find>
-      <find>API_STRICT</find>
-      <find>API_DEBUG</find>
-      <find>coupon</find>
-      <find>query</find>
-      <find>show_dy</find>
-      <find>show</find>
-      <find>ed</find>
       <find>content</find>
       <find>name</find>
       <find>cr_adr_code</find>
       <find>coupon_type</find>
       <find>merchant</find>
-      <find>note</find>
       <find>status-3</find>
       <find>status-1</find>
       <find>status-2</find>
@@ -127,6 +113,15 @@
       <find>query_comment</find>
       <find>comments</find>
       <find>re_c</find>
+      <find>select_coupon</find>
+      <find>$merchant_row</find>
+      <find>$re</find>
+      <find>id</find>
+      <find>note</find>
+      <find>coupon_id</find>
+      <find>$member</find>
+      <find>expired</find>
+      <find>ajax</find>
     </findStrings>
     <dirStrings>
       <dir>D:\ITPM\run\NewVersion\default</dir>
@@ -138,15 +133,7 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/resources/views/admin/swap/create.blade.php" />
-        <option value="$PROJECT_DIR$/resources/views/admin/swap/index.blade.php" />
-        <option value="$PROJECT_DIR$/resources/views/admin/swap/edit.blade.php" />
-        <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/AppraiseController.php" />
-        <option value="$PROJECT_DIR$/app/Models/Merchant.php" />
-        <option value="$PROJECT_DIR$/app/Models/Swap.php" />
-        <option value="$PROJECT_DIR$/database/migrations/2017_11_07_072537_create_swap_table.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/SwapController.php" />
-        <option value="$PROJECT_DIR$/resources/views/admin/comment/index.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/admin/coupon/creates.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/admin/index/index.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/admin/coupon/index.blade.php" />
@@ -155,7 +142,6 @@
         <option value="$PROJECT_DIR$/resources/views/admin/thedelivery/index.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/admin/thedelivery/showadd.blade.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/TheDeliveryController.php" />
-        <option value="$PROJECT_DIR$/database/migrations/2017_11_08_083029_create_activity_table.php" />
         <option value="$PROJECT_DIR$/app/Models/Topic.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/TopicController.php" />
         <option value="$PROJECT_DIR$/database/migrations/2018_07_12_163538_create_cn_city_lat_lng_models_table.php" />
@@ -180,15 +166,24 @@
         <option value="$PROJECT_DIR$/app/Models/Member.php" />
         <option value="$PROJECT_DIR$/resources/views/admin/coupon_category/edit.blade.php" />
         <option value="$PROJECT_DIR$/app/Models/CouponCategory.php" />
-        <option value="$PROJECT_DIR$/app/Helpers/functions.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/CouponCategoryController.php" />
         <option value="$PROJECT_DIR$/resources/views/admin/coupon_category/index.blade.php" />
-        <option value="$PROJECT_DIR$/database/migrations/2017_11_07_030504_create_coupon_model_table.php" />
-        <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/CouponController.php" />
         <option value="$PROJECT_DIR$/app/Models/Comment.php" />
         <option value="$PROJECT_DIR$/app/Models/Inform.php" />
         <option value="$PROJECT_DIR$/database/migrations/2017_11_09_063053_create_comment_table.php" />
+        <option value="$PROJECT_DIR$/app/Helpers/functions.php" />
+        <option value="$PROJECT_DIR$/database/migrations/2017_11_07_030504_create_coupon_model_table.php" />
+        <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/CouponController.php" />
+        <option value="$PROJECT_DIR$/database/migrations/2017_10_27_072535_create_member_table.php" />
+        <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/MemberController.php" />
+        <option value="$PROJECT_DIR$/resources/views/admin/member/index.blade.php" />
+        <option value="$PROJECT_DIR$/resources/views/admin/dynamic/index.blade.php" />
+        <option value="$PROJECT_DIR$/resources/views/admin/topic/index.blade.php" />
+        <option value="$PROJECT_DIR$/resources/views/admin/comment/index.blade.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/CommentController.php" />
+        <option value="$PROJECT_DIR$/database/migrations/2017_11_08_083029_create_activity_table.php" />
+        <option value="$PROJECT_DIR$/app/Models/Activity.php" />
+        <option value="$PROJECT_DIR$/app/Http/Controllers/Admin/ActivityController.php" />
       </list>
     </option>
   </component>
@@ -321,6 +316,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -360,13 +356,39 @@
             <path>
               <item name="default" type="b2602c69:ProjectViewProjectNode" />
               <item name="default" type="462c0819:PsiDirectoryNode" />
-              <item name="routes" type="462c0819:PsiDirectoryNode" />
+              <item name="database" type="462c0819:PsiDirectoryNode" />
+              <item name="migrations" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="default" type="b2602c69:ProjectViewProjectNode" />
+              <item name="default" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="default" type="b2602c69:ProjectViewProjectNode" />
+              <item name="default" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="views" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="default" type="b2602c69:ProjectViewProjectNode" />
+              <item name="default" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="views" type="462c0819:PsiDirectoryNode" />
+              <item name="admin" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="default" type="b2602c69:ProjectViewProjectNode" />
+              <item name="default" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="views" type="462c0819:PsiDirectoryNode" />
+              <item name="admin" type="462c0819:PsiDirectoryNode" />
+              <item name="comment" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -481,16 +503,19 @@
       <workItem from="1533519093759" duration="21839000" />
       <workItem from="1533604146435" duration="1261000" />
       <workItem from="1533616242071" duration="12139000" />
+      <workItem from="1533636707934" duration="27000" />
+      <workItem from="1533636986037" duration="6143000" />
+      <workItem from="1533690776230" duration="12792000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="394324000" />
+    <option name="totallyTimeSpent" value="413286000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1913646" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1977612" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="npm" order="2" side_tool="true" />
       <window_info id="Favorites" order="3" side_tool="true" />
@@ -520,60 +545,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/app/Http/Middleware/VerifyCsrfToken.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="500">
-          <caret line="25" column="42" selection-start-line="25" selection-start-column="42" selection-end-line="25" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Middleware/TrimStrings.php">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Middleware/RedirectIfAuthenticated.php">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Middleware/EncryptCookies.php">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Middleware/CheckAdmin.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="25" column="1" lean-forward="true" selection-start-line="25" selection-start-column="1" selection-end-line="25" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/MemberController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="832">
-          <caret line="91" column="158" selection-start-line="91" selection-start-column="152" selection-end-line="91" selection-end-column="158" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/composer.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/DynamicController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-668">
-          <caret line="440" column="33" lean-forward="true" selection-start-line="440" selection-start-column="33" selection-end-line="440" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/admin/lib/ueditor/1.4.3/third-party/video-js/video.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="298">
-          <caret line="103" column="200" selection-start-line="103" selection-start-column="200" selection-end-line="103" selection-end-column="200" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/views/admin/activity/create.blade.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="519">
-          <caret line="97" column="38" selection-start-line="97" selection-start-column="38" selection-end-line="97" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/public/admin/lib/ueditor/1.4.3/ueditor.all.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="279">
@@ -660,13 +631,6 @@
     <entry file="file://$PROJECT_DIR$/app/Models/Appraise.php">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Models/Member.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="21" column="27" lean-forward="true" selection-start-line="21" selection-start-column="27" selection-end-line="21" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/Models/Medal.php">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -724,23 +688,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Helpers/functions.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="832">
-          <caret line="479" column="5" selection-start-line="479" selection-start-column="5" selection-end-line="479" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resources/views/admin/coupon_category/index.blade.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="500">
           <caret line="98" column="43" lean-forward="true" selection-start-line="98" selection-start-column="43" selection-end-line="98" selection-end-column="43" />
-          <folding>
-            <element signature="n#style#0;n#img#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#img#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#a#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#a#1;n#!!top" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -751,20 +702,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/database/migrations/2017_11_07_030504_create_coupon_model_table.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="199">
-          <caret line="33" column="33" selection-start-line="33" selection-start-column="33" selection-end-line="33" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/CouponController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1479">
-          <caret line="254" column="25" lean-forward="true" selection-start-line="254" selection-start-column="25" selection-end-line="254" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/.env">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -772,20 +709,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="220">
           <caret line="11" column="110" selection-start-line="11" selection-start-column="110" selection-end-line="11" selection-end-column="110" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/web.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="219">
-          <caret line="46" column="16" selection-start-line="46" selection-start-column="16" selection-end-line="46" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/CommentController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="219">
-          <caret line="169" column="110" selection-start-line="169" selection-start-column="95" selection-end-line="169" selection-end-column="110" />
         </state>
       </provider>
     </entry>
@@ -800,6 +723,144 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="340">
           <caret line="23" column="45" selection-start-line="23" selection-start-column="45" selection-end-line="23" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2017_11_06_081329_create_merchant_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="29" column="77" selection-start-line="29" selection-start-column="77" selection-end-line="29" selection-end-column="77" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/MemberController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1821">
+          <caret line="91" column="158" selection-start-line="91" selection-start-column="152" selection-end-line="91" selection-end-column="158" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Models/Member.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="21" column="27" lean-forward="true" selection-start-line="21" selection-start-column="27" selection-end-line="21" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2017_10_27_072535_create_member_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="24" column="76" lean-forward="true" selection-start-line="24" selection-start-column="76" selection-end-line="24" selection-end-column="76" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/CouponController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="559">
+          <caret line="565" column="39" lean-forward="true" selection-start-line="565" selection-start-column="39" selection-end-line="565" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Helpers/functions.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="296">
+          <caret line="704" column="14" lean-forward="true" selection-start-line="704" selection-start-column="14" selection-end-line="704" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/web.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="279">
+          <caret line="69" column="30" selection-start-line="69" selection-start-column="23" selection-end-line="69" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2017_11_07_030504_create_coupon_model_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="752">
+          <caret line="63" column="126" lean-forward="true" selection-start-line="63" selection-start-column="126" selection-end-line="63" selection-end-column="126" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/admin/member/index.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="89" column="136" selection-start-line="89" selection-start-column="111" selection-end-line="89" selection-end-column="136" />
+          <folding>
+            <element signature="n#style#0;n#img#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#1;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/admin/dynamic/index.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="99" column="52" lean-forward="true" selection-start-line="99" selection-start-column="52" selection-end-line="99" selection-end-column="52" />
+          <folding>
+            <element signature="n#style#0;n#img#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#img#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#1;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#textarea#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/admin/topic/index.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="620">
+          <caret line="137" column="13" lean-forward="true" selection-start-line="137" selection-start-column="13" selection-end-line="137" selection-end-column="13" />
+          <folding>
+            <element signature="n#style#0;n#div#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#img#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#img#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#1;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/CommentController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="239">
+          <caret line="41" lean-forward="true" selection-start-line="41" selection-end-line="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/admin/comment/index.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="520">
+          <caret line="65" column="46" lean-forward="true" selection-start-line="65" selection-start-column="46" selection-end-line="65" selection-end-column="46" />
+          <folding>
+            <element signature="n#style#0;n#a#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#1;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2017_11_08_083029_create_activity_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="640">
+          <caret line="34" lean-forward="true" selection-start-line="34" selection-end-line="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Models/Activity.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="260">
+          <caret line="14" column="146" selection-start-line="14" selection-start-column="146" selection-end-line="14" selection-end-column="146" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/ActivityController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="832">
+          <caret line="958" lean-forward="true" selection-start-line="958" selection-end-line="958" />
         </state>
       </provider>
     </entry>

@@ -28,7 +28,7 @@ class CommentController extends Controller
     {
 
         if ($request->ajax()) {
-            $data = $comment->with('member')->with('dynamic')->with('topic')->select('id', 'dy_id', 'to_id', 'member_id', 'content', 'created_at')->get();
+            $data = $comment->with('member')->with('dynamic')->with('topic')->select('id', 'dy_id', 'to_id', 'member_id', 'content', 'created_at','parent_id')->get();
             $cnt = count($data);
             $info = [
                 'draw' => $request->get('draw'),
@@ -166,7 +166,6 @@ class CommentController extends Controller
         $arr['content'] = $data['content'];
         $res = $comment->create($arr);
         if ($res) {
-
             $comment->where('id',$res['id'])->update(['first_branch_id' => $res['id']]);//一级评论的first_branch_id是他本身
             //通知该文章所有者
             if($inform->msm_inf($b_ids['member_id'])){

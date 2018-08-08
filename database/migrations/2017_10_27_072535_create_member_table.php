@@ -41,17 +41,15 @@ class CreateMemberTable extends Migration
             $table->string('api_token', 60)->unique()->comment( '登录验证' );
             $table->unsignedInteger('integral_swap')->nullable()->comment( '券换积分累积' );
             $table->text('steps')->nullable()->comment( '步数[x年x月x日:10,day2:20...]' );
-
             $table->text('friends_id')->nullable()->comment( '好友id,["1","2","3"]' );
             $table->text('fans_id')->nullable()->comment( '粉丝id,["1","2","3"]' );
             $table->text('attention_id')->nullable()->comment( '关注的商家id,["1","2","3"]' );
             $table->text('merchant_id')->nullable()->comment( '收藏的商家id,["1","2","3"]' );
             $table->text('collection_coupon_id')->nullable()->comment( '收藏的优惠券id,["1","2","3"]' );
             //持有优惠券的数量
-            $table->text('coupon_id')->nullable()->comment( '拥有的优惠券id,["1","2","3"]' );
+//            $table->text('coupon_id')->nullable()->comment( '拥有的优惠券id,["1","2","3"]' );
             $table->text('tesco')->nullable()->comment( '已购商品id,["1","2","3"]' );
             $table->timestamp('disabled_at')->nullable()->comment('禁用时间');
-
             $table->timestamps();
             $table->softDeletes();
         });

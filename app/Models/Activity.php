@@ -12,7 +12,7 @@ class Activity extends Model
     protected $dates = ['deleted_at'];
     protected $table = 'activity';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','note','title','img_url','content','actMall_id','actMall_num','start_at','end_at','man_num','top_img_url'];
+    protected $fillable = ['id','note','title','img_url','content','actMall_id','actMall_num','start_at','end_at','man_num','top_img_url','status'];
 
     //活动表和奖品表的关系 多对一
     public function actmall(){
