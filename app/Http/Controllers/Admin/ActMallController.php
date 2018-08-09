@@ -7,6 +7,7 @@ use App\Models\ActMall;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
+use Illuminate\Support\Facades\DB;
 
 class ActMallController extends Controller
 {
@@ -26,15 +27,17 @@ class ActMallController extends Controller
         if (!$request->ajax()) {
             return ['status' => 'fail', 'error' => '非法的请求类型'];
         }
-        $data = $request->only('note', 'price', 'img_url', 'act_num');
+        $data = $request->only('goods_name','note', 'price', 'img_url', 'act_num');
         $role = [
+            'goods_name' => 'required',
             'note' => 'required',
             'price' => 'required|integer',
             'img_url' => 'required|image',
             'act_num' => 'required|integer'
         ];
         $message = [
-            'note.required' => '商品名称/简介不能为空！',
+            'goods_name.required' => '商品名称不能为空！',
+            'note.required' => '商品简介不能为空！',
             'price.required' => '商品价格不能为空！',
             'price.integer' => '商品价格必须大于0！',
             'img_url.required' => '商品图片不能为空',
@@ -80,7 +83,7 @@ class ActMallController extends Controller
     public function ajax_list(Request $request, ActMall $actmall)
     {
         if ($request->ajax()) {
-            $data = $actmall->select('id', 'note', 'price', 'img_url','act_num')->get();
+            $data = $actmall->select('id', 'note', 'price', 'img_url','act_num','goods_name')->get();
             $cnt = count($data);
             $info = [
                 'draw' => $request->get('draw'),
@@ -110,9 +113,9 @@ class ActMallController extends Controller
     public function update(Request $request, ActMall $actmall)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => 'fail', 'msg' => '非法的请求类型'];
         }
-        $data = $request->only('note', 'price', 'img_url', 'act_num');
+        $data = $request->only('goods_name','note', 'price', 'img_url', 'act_num');
         $role = [
             'price' => 'nullable|integer',
             'img_url' => 'nullable|image',
@@ -160,19 +163,27 @@ class ActMallController extends Controller
         if ($res) {
             return ['status' => 'success', 'msg' => '修改成功'];
         } else {
-            return ['status' => 'fail', 'code' => 3, 'error' => '修改失败！'];
+            return ['status' => 'fail', 'code' => 3, 'msg' => '修改失败！'];
         }
     }
 
     public function destroy($id)
     {
+        #检查当前id有没有在发货单上
+        $tf = DB::table('thedelivery')->select('id')->where('atm_id',$id)->get();
+        if(!empty($tf)){
+            return ['status' => 'fail', 'msg' => '删除失败,请先删除物流订单'.$tf];
+        }
         $actmall = new ActMall();
         $actmall = $actmall->find($id);
+        if(file_exists($actmall['img_url'])){
+            @unlink($actmall['img_url']);
+        }
         $res = $actmall->delete();
         if ($res) {
             return ['status' => 'success'];
         } else {
-            return ['status' => 'fail', 'error' => '删除失败！'];
+            return ['status' => 'fail', 'msg' => '删除失败！'];
         }
     }
 
@@ -181,13 +192,10 @@ class ActMallController extends Controller
      */
     public function Activity_prizes( Request $request, ActMall $actMall ){
         //直接返回所有赛事奖品价格,简介,图片
-        $data = $actMall->select( 'id','price','note','img_url'  )->get()->toArray();
+        $data = $actMall->select( 'id','goods_name','price','note','img_url'  )->get();
         foreach ( $data  as $k=>$v ){
-            $arr[$k]['activity_prizes_id'] =   $v['id'];
-            $arr[$k]['price'] =   $v['price'];
-            $arr[$k]['note'] =   $v['note'];
-            $arr[$k]['img_url'] =   $request->server('HTTP_HOST').'/'.$v['img_url'];
+            $data[$k]['img_url'] =   $request->server('HTTP_HOST').'/'.$v['img_url'];
         }
-        res( $arr );
+        res( $data );
     }
 }

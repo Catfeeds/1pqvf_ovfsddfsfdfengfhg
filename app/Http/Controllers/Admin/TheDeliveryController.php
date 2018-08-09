@@ -20,8 +20,18 @@ class TheDeliveryController extends Controller
     public function ajax_list(Request $request, TheDelivery $thedelivery)
     {
         if ($request->ajax()) {
-            $data = $thedelivery->with('member')->with('intmall')->select('id', 'member_id', 'intmall_id', 'delivery_time', 'logistics', 'order_sn', 'created_at')->get();//address
-            dump($data);die();
+            $data = $thedelivery
+                ->leftJoin('member','member.id','=','thedelivery.to_member_id')
+                ->leftJoin('intmall','intmall.id','=','thedelivery.itm_id')
+                ->leftJoin('actmall','actmall.id','=','thedelivery.atm_id')
+                ->select('thedelivery.id', 'thedelivery.to_member_id', 'thedelivery.itm_id','thedelivery.atm_id',
+                    'thedelivery.send_at', 'thedelivery.logistics', 'thedelivery.order_sn', 'thedelivery.created_at',
+                    'thedelivery.postscript','member.nickname AS to_member','member.phone AS phone','member.address AS member_info',
+                    'intmall.trade_name','actmall.goods_name')->get();
+            foreach ($data as $k => $v){
+                $data[$k]['member_info'] =  json_decode($v['member_info'],true)['address'];
+            }
+//            dump(obj_arr($data));die();
             $cnt = count($data);
             $info = [
                 'draw' => $request->get('draw'),
@@ -35,22 +45,18 @@ class TheDeliveryController extends Controller
 
     public function edit($id)
     {
+//        dump($id);die();
         //接收到id,然后查询用户的id是多少
         $theDelivery = new TheDelivery();
-        $res = $theDelivery->select('member_id', 'delivery_time', 'logistics', 'order_sn')->find($id);
-        if (empty($res['delivery_time'])) {
-            //为空,还没发货
-            $data['flag'] = 1;
-        } else {
-            $data['flag'] = 2;//已发货
-        }
-        $data['id'] = $id;//已发货
-        $data['logistics'] = $res['logistics'];
-        $data['order_sn'] = $res['order_sn'];
-        //查询出地址
-        $member = new Member();
-        $res = $member->select('address')->find($res['member_id']);
-        $data['info'] = $res['address'];
+        $data = $theDelivery->leftJoin('member','member.id','=','thedelivery.to_member_id')
+            ->leftJoin('intmall','intmall.id','=','thedelivery.itm_id')
+            ->leftJoin('actmall','actmall.id','=','thedelivery.atm_id')
+            ->select( 'thedelivery.id','thedelivery.to_member_id', 'thedelivery.itm_id','thedelivery.atm_id', 'thedelivery.send_at', 'thedelivery.logistics', 'thedelivery.order_sn', 'thedelivery.created_at','thedelivery.postscript','member.nickname AS to_member','member.phone AS phone','member.address AS to_info','intmall.trade_name','actmall.goods_name')->find($id);
+        $data['flag'] = empty($data['send_at']) ? 1 : 2;
+
+
+
+//         dump(obj_arr($data));die();
         return view('admin.thedelivery.showadd', $data);
     }
 

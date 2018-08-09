@@ -75,7 +75,7 @@
     <script>
         $(function(){
             // 单选按钮外观效果  --<
-            var content = '{{  $info }}';
+            var content = '{{  $to_info }}';
             for(var i=0;i<content.length;i++){
                 content = content.replace('&quot;','"');
             }

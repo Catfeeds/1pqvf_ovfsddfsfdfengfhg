@@ -427,7 +427,6 @@ class CommentController extends Controller
             $arr[$k] = $v;
             $arr[$k]['branch_members'] =  empty($branch_members[$v['id']]) ? null : $branch_members[$v['id']];
         }
-        dump(obj_arr($arr));
         res($arr);
 
 //        #1.判断当前查询动态评论还是话题评论，获取博客下的所有一级评论:$p_ids

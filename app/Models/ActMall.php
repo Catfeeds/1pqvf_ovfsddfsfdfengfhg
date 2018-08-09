@@ -12,6 +12,6 @@ class ActMall extends Model
     protected $dates = ['deleted_at'];
     protected $table = 'actMall';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','note','price','img_url','act_num'];
+    protected $fillable = ['id','goods_name','note','price','img_url','act_num'];
 
 }

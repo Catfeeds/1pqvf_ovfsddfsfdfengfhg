@@ -5,7 +5,13 @@
         <form action="{{ url('admin/actmall')  }}" method="post" enctype="multipart/form-data"  class="form form-horizontal" id="form-actmall-add">
             {{ csrf_field() }}
             <div class="row cl">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>商品名称/简介：</label>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>商品名称：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="text" class="input-text"  placeholder="商品名称" id="goods_name" name="goods_name">
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>商品简介：</label>
                 <div class="formControls col-xs-8 col-sm-9">
                     <input type="text" class="input-text"  placeholder="商品名称/简介" id="note" name="note">
                 </div>

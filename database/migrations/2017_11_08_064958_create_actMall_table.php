@@ -18,10 +18,11 @@ class CreateActMallTable extends Migration
             // 声明表结构
             $table->engine = 'InnoDB';
             $table->increments('id')->comment( '主键ID' );
-            $table->string('note',150)->nullable()->comment( '奖品简介' );
-            $table->unsignedBigInteger('price')->comment( '奖品价格' );
-            $table->string('img_url',255)->nullable()->comment( '奖品图片' );
-            $table->unsignedBigInteger('act_num')->comment( '奖品数量' );
+            $table->string('goods_name',150)->nullable()->comment('奖品名称');
+            $table->string('note',150)->nullable()->comment('奖品简介');
+            $table->unsignedBigInteger('price')->comment('奖品价格');
+            $table->string('img_url',255)->nullable()->comment('奖品图片');
+            $table->unsignedBigInteger('act_num')->comment('奖品数量');
             $table->timestamps();
             $table->softDeletes();
         });

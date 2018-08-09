@@ -8,12 +8,15 @@
 	<table class="table table-border table-bordered table-bg datatables">
 		<thead>
 			<tr>
-				<th scope="col" colspan="8">积分商品发货列表</th>
+				<th scope="col" colspan="11">积分商品发货列表</th>
 			</tr>
 			<tr class="text-c">
                 <th width="">ID</th>
-				<th width="">用户名</th>
-                <th width="">兑换的商品</th>
+                <th width="">发起原因</th>
+                <th width="">发货商品</th>
+				<th width="">收货人昵称</th>
+				<th width="">收货电话及地址</th>
+                <th  width="">订单附言</th>
                 <th width="">所选物流</th>
                 <th width="">快递单号</th>
                 <th width="">兑换时间</th>
@@ -26,6 +29,7 @@
 				<td>id</td>
 				<td>用户名</td>
 				<td>备注</td>
+                <td>备注</td>
 				<td class="td-manage"><a style="text-decoration:none" onClick="theDelivery_stop(this,'10001')" href="javascript:;" title="停用"><i class="Hui-iconfont">&#xe631;</i></a>
 					<a title="编辑" href="javascript:;" onclick="theDelivery_edit('积分商品发货编辑','admin-add.html','1','800','500')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>
 					<a title="删除" href="javascript:;" onclick="theDelivery_del(this,'1')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a></td>
@@ -62,18 +66,18 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[2,4,-1],[2,4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索
         'ordering':true,//启用排序
-        "order": [[ 1, "desc" ]],//排序规则  默认下标为1的显示倒序
+        "order": [[ 0, "desc" ]],//排序规则  默认下标为1的显示倒序
         "stateSave": false,//使用状态.是否保持 默认true
         "processing": false,//是否显示数据在处理中的状态
         "serverSide": false,//是否开启服务端
         //设置不需要排序的字段
         "columnDefs": [{
-            "targets": [1,-2,-1],
+            "targets": [1,2,3,4,5,6,7,-1],
             "orderable": false
         }],
         "ajax": {
@@ -84,19 +88,24 @@
         //按列显示从服务器端过来的数据
         'columns':[
             {'data':'id',"defaultContent": ""},
-            {'data':'member.nickname',"defaultContent": ""},
-            {'data':'intmall.trade_name',"defaultContent": ""},
+            {'data':'',"defaultContent": ""},
+            {'data':'',"defaultContent": ""},
+            {'data':'to_member',"defaultContent": ""},
+            {'data':'',"defaultContent": ""},
+            {'data':'postscript',"defaultContent": ""},
             {'data':'logistics',"defaultContent": ""},
-            {'data':'order_sn',"defaultContent": ""},
+            {'data':'logistics_sn',"defaultContent": ""},
             {'data':'created_at',"defaultContent": ""},
-            {'data':'delivery_time',"defaultContent": ""},
+            {'data':'send_at',"defaultContent": ""},
             {'data':'b',"defaultContent": ""},
         ],
         'createdRow':function ( row,data,dataIndex ) {
             var cnt = data.recordsFiltered;
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
-
+            $(row).find('td:eq(1)').html(data.itm_id == null ? '活动奖励' : '积分兑换');
+            $(row).find('td:eq(2)').html(data.trade_name == null ? data.goods_name : data.trade_name);
+            $(row).find('td:eq(4)').html(data.member_info==null ? '无' : '收货人：'+data.member_info.nickname+'；收货电话：'+data.member_info.phone+'；收货人地址：'+data.member_info.province+data.member_info.address+'；邮编：'+data.member_info.zip_code);
             //操作
             //如果还没发货,则为查看地址,如果已经发货,则为查看地址,并多出一个取消发货
             if(  data.delivery_time == null ){ //发货时间=null 代表还没发货 不能取消
