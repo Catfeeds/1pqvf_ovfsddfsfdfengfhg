@@ -19,7 +19,6 @@ class CreateTopicTable extends Migration
             $table->engine = 'InnoDB';
             $table->increments('id')->comment( '主键ID' );
             $table->unsignedTinyInteger('lev_state')->default('1')->nullable()->comment( '发布人等级：null为官方，1为一般用户' );
-//            $table->unsignedInteger('admin_id')->nullable()->comment( '发布人(管理员)id' );
             $table->unsignedInteger('member_id')->comment( '发布人(用户)id' );
             $table->unsignedTinyInteger('subject_id')->nullable()->comment( '分类id(归属哪个话题分类)' );
             $table->text('subjec_catename')->nullable()->comment( '#毅力使者是怎样炼成的#' );

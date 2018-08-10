@@ -23,10 +23,10 @@ class CreateAdminTable extends Migration
             $table->text('note')->nullable()->comment('备注');
             $table->rememberToken()->comment('记住登录');
             $table->string('email',150)->unique()->nullable()->comment( '邮箱' );
-            $table->timestamp('disabled_at')->nullable()->comment('禁用时间');
             $table->text('friends_id')->nullable()->comment( '好友id,["1","2","3"]' );
             $table->text('fans_id')->nullable()->comment( '粉丝id,["1","2","3"]' );
             $table->string('avatar',255)->default('uploads/avatar/morentouxiang.png')->nullable()->comment( '头像' );
+            $table->timestamp('status')->nullable()->comment('禁用状态：0禁用，1生效');
             $table->timestamps();
             $table->softDeletes();
         });

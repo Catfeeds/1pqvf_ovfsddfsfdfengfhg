@@ -22,7 +22,7 @@ class CreateSwapTable extends Migration
             $table->unsignedInteger('member_id')->comment( '会员(发布人)id' );
             $table->unsignedTinyInteger('status')->comment( '状态0失效，1已被兑换，2还没人兑换' );
             $table->unsignedBigInteger('integral')->comment('需要的积分数量');
-            $table->unsignedInteger('exc_mem_id')->comment( '兑换人的member表id' );
+            $table->unsignedInteger('exc_mem_id')->nullable()->comment( '兑换人的member表id' );
             $table->timestamps();
             $table->foreign('coupon_id')->references('id')->on('coupon') ->onUpdate('cascade')->onDelete('cascade');
             $table->foreign('member_id')->references('id')->on('member') ->onUpdate('cascade')->onDelete('cascade');

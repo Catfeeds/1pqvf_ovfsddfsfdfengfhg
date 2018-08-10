@@ -25,12 +25,9 @@ class CreateMemberTable extends Migration
             $table->string('city',40)->nullable()->default('深圳')->comment( '城市' );
             $table->unsignedTinyInteger('sex')->nullable()->default(1)->comment( '性别(1:女,2:男,3:保密)' );
             $table->unsignedTinyInteger('age')->nullable()->default(18)->comment( '年龄' );
-            //修改为SMALLINT ,允许体重和身高
             $table->unsignedSmallInteger('height')->nullable()->comment( '身高' );
             $table->unsignedSmallInteger('weight')->nullable()->comment( '体重' );
             $table->text('address')->nullable()->comment('收货地址');
-            //步数表和用户的关系  步数表存储用户id关联
-//            $table->string('steps',255)->nullable()->default('0')->comment( '步数[day1:10,day2:20...]' );
             $table->unsignedTinyInteger('is_admin')->nullable()->default(2)->comment( '是否是管理员，1官方、2普通用户' );
 
 
@@ -46,8 +43,6 @@ class CreateMemberTable extends Migration
             $table->text('attention_id')->nullable()->comment( '关注的商家id,["1","2","3"]' );
             $table->text('merchant_id')->nullable()->comment( '收藏的商家id,["1","2","3"]' );
             $table->text('collection_coupon_id')->nullable()->comment( '收藏的优惠券id,["1","2","3"]' );
-            //持有优惠券的数量
-//            $table->text('coupon_id')->nullable()->comment( '拥有的优惠券id,["1","2","3"]' );
             $table->text('tesco')->nullable()->comment( '已购商品id,["1","2","3"]' );
             $table->timestamp('disabled_at')->nullable()->comment('禁用时间');
             $table->timestamps();

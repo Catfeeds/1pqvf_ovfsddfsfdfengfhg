@@ -23,10 +23,6 @@ class CreateIntMallTable extends Migration
             $table->unsignedBigInteger('trade_num')->comment( '商品数量/注意超购');
             $table->unsignedBigInteger('integral_price')->nullable()->comment( '积分价格');
             $table->unsignedBigInteger('rmb_price')->nullable()->comment( 'rmb价格');
-//            $table->unsignedTinyInteger('limit_num')->nullable()->comment( '限兑数量' );
-//            $table->unsignedTinyInteger('member_id')->nullable()->comment( '兑换人的id' );
-//            $table->unsignedTinyInteger('member_limit_num')->nullable()->comment( '兑换人已兑的数量' );
-//            $table->timestamp('exchange')->nullable()->comment( '兑换人兑换的时间' );
             $table->softDeletes();
         });
     }

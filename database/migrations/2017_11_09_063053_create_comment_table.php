@@ -24,7 +24,7 @@ class CreateCommentTable extends Migration
             $table->unsignedInteger('parent_id')->nullable()->comment( '被评论comment_id' );
             $table->unsignedInteger('p_mid')->nullable()->comment( '被评论人member_id' );
             $table->text('content')->nullable()->comment('评论内容');
-            $table->unsignedInteger('first_branch_id')->nullable()->comment( '属于哪个一级评论下的，一级评论的first_branch是他本身' );
+            $table->unsignedInteger('first_branch_id')->comment( '属于哪个一级评论下的，一级评论的first_branch是他本身' );
             $table->timestamps();//评论时间
         });
     }

@@ -17,8 +17,8 @@ class CreateActivityTable extends Migration
             // 声明表结构
             $table->engine = 'InnoDB';
             $table->increments('id')->comment( '主键ID' );
-            $table->string('note',150)->nullable()->comment('活动简介');
             $table->string('title',150)->nullable()->comment('活动标题');
+            $table->string('note',150)->nullable()->comment('活动简介');
             $table->unsignedTinyInteger('status')->default(1)->comment('活动状态:赛事状态：0失效；1有效；2有效但隐藏');
             $table->string('img_url',255)->nullable()->comment('封面图片,轮播');
             $table->string('top_img_url',255)->nullable()->comment('详情页面顶部图片');

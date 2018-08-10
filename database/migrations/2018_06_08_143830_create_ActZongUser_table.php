@@ -14,7 +14,7 @@ class CreateActZongUserTable extends Migration
     public function up()
     {
         // 记录活动表
-        Schema::create('act_zone_user',function(Blueprint $table){
+        Schema::create('act_zong_user',function(Blueprint $table){
             // 声明表结构
             $table->engine = 'InnoDB';
             $table->increments('id')->comment( '主键ID' );
@@ -41,6 +41,6 @@ class CreateActZongUserTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('act_zone_user');
+        Schema::dropIfExists('act_zong_user');
     }
 }

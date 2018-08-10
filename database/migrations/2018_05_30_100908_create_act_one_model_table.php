@@ -36,7 +36,6 @@ class CreateActOneModelTable extends Migration
             // 声明表结构
             $table->engine = 'InnoDB';
             $table->increments('id')->comment( '主键ID' );
-            $table->string('latitude',255)->nullable()->comment( '活动旗子所在经纬度' );//需要删除
             $table->string('lng',60)->comment( '活动旗子所在纬度' );
             $table->string('lat',60)->comment( '活动旗子所在经度' );
             $table->unsignedInteger('act_id')->comment( '活动id：4深大活动，5端午节活动' );

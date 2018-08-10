@@ -41,23 +41,24 @@ class CreateCouponModelTable extends Migration
             $table->engine = 'InnoDB';
             $table->increments('id')->comment('主键');
             $table->unsignedInteger('cp_cate_id')->comment('所属优惠券,对应coupon_category中的id');
-            $table->timestamp('start_at')->comment('该券效期的开始时间');
-            $table->timestamp('end_at')->comment('该券效期的结束时间');
             $table->string('cp_number',25)->unique()->comment('优惠券编码');
-            $table->unsignedTinyInteger('status')->default(0)->comment('使用状态:0未领取,1已领取但未使用,2已使用,3过期,4冻结期（互换期等）');
-            $table->string('rewarded_lat',30)->nullable()->comment('记录获取的经度');
-            $table->string('rewarded_lng',30)->nullable()->comment('记录获取的纬度');
-            $table->timestamp('create_at')->nullable()->comment('获取时间');
-            $table->string('cr_adr_code',200)->nullable()->comment('按当前区/县生成的坐标(百度编码adcode)');
-            $table->unsignedInteger('member_id')->nullable()->comment('优惠券所属用户');
+            $table->string('cr_adr_code',200)->nullable()->comment('优惠券按哪个区/县生成的(百度编码adcode)');
+            $table->string('lat',30)->comment( '所在经度' );
+            $table->string('lng',30)->comment( '所在纬度' );
             $table->string('province',60)->nullable()->comment('优惠券所在省');
             $table->string('city',60)->nullable()->comment('优惠券所在城市');
             $table->string('district',60)->nullable()->comment('优惠券所在区');
             $table->string('adcode',8)->nullable()->comment('优惠券所在区域的百度地区编码http://lbsyun.baidu.com/index.php?title=open/dev-res');
-            $table->string('lat',30)->comment( '所在经度' );
-            $table->string('lng',30)->comment( '所在纬度' );
             $table->string('note')->nullable()->comment('优惠券备注');
             $table->string('uuid',36)->comment('优惠券编号/排序字段');
+            $table->timestamp('start_at')->comment('该券效期的开始时间');
+            $table->timestamp('end_at')->comment('该券效期的结束时间');
+
+            $table->unsignedTinyInteger('status')->default(0)->comment('使用状态:0未领取,1已领取但未使用,2已使用,3过期,4冻结期（互换期等）');
+            $table->unsignedInteger('member_id')->nullable()->comment('优惠券所属用户');
+            $table->string('rewarded_lat',30)->nullable()->comment('记录获取的经度');
+            $table->string('rewarded_lng',30)->nullable()->comment('记录获取的纬度');
+            $table->timestamp('create_at')->nullable()->comment('获取时间');
             $table->timestamps();
             $table->index('uuid');
             # 外键约束 如果coupon_category更新该数据库cp_cate_id也更新，如果删除同样也删除

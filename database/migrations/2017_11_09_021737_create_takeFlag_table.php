@@ -26,8 +26,6 @@ class CreateTakeFlagTable extends Migration
             $table->timestamp('award')->nullable()->comment('是否领奖');//当不为Null的时候,就是已经领奖
             $table->timestamp('delivery')->nullable()->comment('发货状态');//当不为Null的时候,就是已经发货
             $table->unsignedSmallInteger('cost')->nullable()->comment( '报名积分' );
-
-            //旗子所在的地区
             $table->unsignedInteger('flag_num')->nullable()->comment( '已获得旗子数量' );
             $table->unsignedInteger('activity_id')->nullable()->comment( '所属活动id' );
             $table->timestamps();
