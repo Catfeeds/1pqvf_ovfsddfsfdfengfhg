@@ -3,18 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="99d5e1d7-caa2-40bb-97a7-d6218a3ba08a" name="默认的" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_10_23_023143_create_admin_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_10_23_023143_create_admin_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_10_27_072535_create_member_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_10_27_072535_create_member_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_07_030504_create_coupon_model_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_07_030504_create_coupon_model_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_07_072537_create_swap_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_07_072537_create_swap_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_08_022852_create_topic_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_08_022852_create_topic_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_08_031702_create_intMall_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_08_031702_create_intMall_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_08_083029_create_activity_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_08_083029_create_activity_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_09_021737_create_takeFlag_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_09_021737_create_takeFlag_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_09_063053_create_comment_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_09_063053_create_comment_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2017_11_29_094744_create_medal_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2017_11_29_094744_create_medal_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2018_05_30_100908_create_act_one_model_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2018_05_30_100908_create_act_one_model_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2018_06_08_143830_create_ActZongUser_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2018_06_08_143830_create_ActZongUser_table.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/LICENSE" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/src/Hyperbolaa/Alisms/Facades/AlismsApi.php" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/src/Hyperbolaa/Alisms/Facades/AlismsApi.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/src/Hyperbolaa/Alisms/Facades/AlismsNote.php" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/hyperbolaa/alisms/src/Hyperbolaa/Alisms/Facades/AlismsNote.php" afterDir="false" />
@@ -46,10 +34,10 @@
           <entry key="project.open.time.24" value="1" />
           <entry key="project.open.time.26" value="1" />
           <entry key="project.open.time.3" value="1" />
-          <entry key="project.open.time.4" value="6" />
+          <entry key="project.open.time.4" value="7" />
           <entry key="project.open.time.6" value="2" />
           <entry key="project.open.time.7" value="1" />
-          <entry key="project.opened" value="23" />
+          <entry key="project.opened" value="24" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.js.language.service.starts" />
@@ -89,7 +77,7 @@
     </session>
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <leaf />
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
@@ -302,7 +290,7 @@
       <path value="$PROJECT_DIR$/vendor/doctrine/event-manager" />
     </include_path>
   </component>
-  <component name="ProjectFrameBounds">
+  <component name="ProjectFrameBounds" extendedState="1">
     <option name="x" value="-8" />
     <option name="y" value="-8" />
     <option name="width" value="1936" />
@@ -316,7 +304,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -359,16 +346,11 @@
               <item name="default" type="462c0819:PsiDirectoryNode" />
               <item name="database" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="default" type="b2602c69:ProjectViewProjectNode" />
-              <item name="default" type="462c0819:PsiDirectoryNode" />
-              <item name="database" type="462c0819:PsiDirectoryNode" />
-              <item name="migrations" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -495,16 +477,17 @@
       <workItem from="1533809853414" duration="50000" />
       <workItem from="1533809992904" duration="2194000" />
       <workItem from="1533864246991" duration="41000" />
+      <workItem from="1533864476121" duration="3036000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="444821000" />
+    <option name="totallyTimeSpent" value="447857000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="0" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="1" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21695095" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21908316" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="npm" order="2" side_tool="true" />
       <window_info id="Favorites" order="3" side_tool="true" />
