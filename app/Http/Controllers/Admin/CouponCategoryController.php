@@ -68,7 +68,7 @@ class CouponCategoryController extends Controller
         if ($validator->fails()) {
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
-        $res = uploadpic('picture_url', 'uploads/picture_url');//
+        $res = uploadpic('picture_url', 'uploads/picture_url/coupon/'.date('Y-m-d'));//
         switch ($res) {
             case 1:
                 return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -80,7 +80,7 @@ class CouponCategoryController extends Controller
                 return ['status' => 'fail', 'msg' => '图片储存失败'];
         }
         $data['picture_url'] = $res;
-        $res = uploadpic('deduction_url', 'uploads/img_url');//
+        $res = uploadpic('deduction_url', 'uploads/img_url/coupon/'.date('Y-m-d'));//
         switch ($res) {
             case 1:
                 return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -92,8 +92,7 @@ class CouponCategoryController extends Controller
                 return ['status' => 'fail', 'msg' => '图片储存失败'];
         }
         $data['deduction_url'] = $res;
-//        $data['coupon_explain'] = json_encode(preg_split('/\s+/', trim($data['coupon_explain'])),JSON_UNESCAPED_UNICODE);//处理富文本为数组 并转json保存
-        dump($data);die();
+        $data['coupon_explain'] = json_encode(explode('\r\n', trim($data['coupon_explain'])),JSON_UNESCAPED_UNICODE);
         $res = $coupon_category->create($data);
         if ($res->id) {
             return ['status' => 'success', 'msg' => '添加成功'];
@@ -170,7 +169,7 @@ class CouponCategoryController extends Controller
         }
         //调用公共文件上传
         if (!empty($data['picture_url'])) {
-            $res = uploadpic('picture_url', 'uploads/picture_url');//
+            $res = uploadpic('picture_url', 'uploads/picture_url/coupon'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -190,7 +189,7 @@ class CouponCategoryController extends Controller
             unset($data['picture_url']);
         }
         if (!empty($data['deduction_url'])) {
-            $res = uploadpic('deduction_url', 'uploads/img_url');//
+            $res = uploadpic('deduction_url', 'uploads/img_url/coupon'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -210,7 +209,7 @@ class CouponCategoryController extends Controller
             unset($data['deduction_url']);
         }
         $data = array_filter($data);//为空的是不更新的部分
-        $data['coupon_explain'] = json_encode(explode('\r\n', $data['coupon_explain']),JSON_UNESCAPED_UNICODE);
+        $data['coupon_explain'] = json_encode(explode('\r\n', trim($data['coupon_explain'])),JSON_UNESCAPED_UNICODE);
         // 更新数据
         $res = $coupon_category->update($data);
         if ($res) {

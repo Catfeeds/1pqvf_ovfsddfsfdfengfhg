@@ -25,7 +25,7 @@ class CreateMerchantTable extends Migration
             $table->timestamp('disabled_at')->nullable()->comment('禁用时间');
             $table->text('address')->nullable()->comment('商家地址');
             $table->string('img_url',255)->nullable()->comment( '图片' );
-            $table->string('avatar',255)->nullable()->comment( '商家头像' );
+            $table->string('avatar',255)->default('uploads/sys_img/morentouxiang.png')->comment( '商家头像' );
             $table->unsignedTinyInteger('appraise_n')->comment( '评价星级' );
             $table->string('store_image',255)->nullable()->comment( '店铺图片' );
             $table->text('note',255)->nullable()->comment('商家备注');

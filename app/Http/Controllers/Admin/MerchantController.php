@@ -64,7 +64,7 @@ class MerchantController extends Controller
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
         //保存头像
-        $res = uploadpic('avatar', 'uploads/avatar');//
+        $res = uploadpic('avatar', 'uploads/avatar/merchant/'.date('Y-m-d'));//
         switch ($res) {
             case 1:
                 return ['status' => 'fail', 'msg' => '头像上传失败'];
@@ -77,7 +77,7 @@ class MerchantController extends Controller
         }
         $data['avatar'] = $res; //把得到的地址给picname存到数据库
         //保存首页
-        $res2 = uploadpic('img_url', 'uploads/img_url');//
+        $res2 = uploadpic('img_url', 'uploads/img_url/merchant/'.date('Y-m-d'));//
         switch ($res2) {
             case 1:
                 return ['status' => 'fail', 'msg' => '封面图片上传失败'];
@@ -89,8 +89,7 @@ class MerchantController extends Controller
                 return ['status' => 'fail', 'msg' => '封面图片储存失败'];
         }
         $data['img_url'] = $res2; //封面
-        //店铺图
-        $res3 = uploadpic('store_image', 'uploads/store_image');
+        $res3 = uploadpic('store_image', 'uploads/store_image/'.date('Y-m-d'));//店铺图片
         switch ($res) {
             case 1:
                 return ['status' => 'fail', 'msg' => '店铺图上传失败'];
@@ -139,6 +138,7 @@ class MerchantController extends Controller
                 'recordsFiltered' => $cnt,
                 'data' => $data,
             ];
+//            dump($info);
             return $info;
         }
     }
@@ -187,7 +187,7 @@ class MerchantController extends Controller
         }
         //保存图片
         if (!empty($data['avatar'])) {
-            $res = uploadpic('avatar', 'uploads/avatar');//
+            $res = uploadpic('avatar', 'uploads/avatar/merchant/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '头像上传失败'];
@@ -206,7 +206,7 @@ class MerchantController extends Controller
             }
         }
         if (!empty($data['img_url'])) {
-            $res2 = uploadpic('img_url', 'uploads/img_url');//
+            $res2 = uploadpic('img_url', 'uploads/img_url/merchant/'.date('Y-m-d'));//
             switch ($res2) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '封面图片上传失败'];
@@ -225,7 +225,7 @@ class MerchantController extends Controller
             }
         }
         if (!empty($data['store_image'])) {
-            $res2 = uploadpic('store_image', 'uploads/store_image');//
+            $res2 = uploadpic('store_image', 'uploads/store_image/'.date('Y-m-d'));//店铺图片
             switch ($res2) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '店铺图片上传失败'];
