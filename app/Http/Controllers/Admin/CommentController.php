@@ -349,11 +349,11 @@ class CommentController extends Controller
             $id_arr = $comment->getChildrenId($all_com, $data['comment_id']);
             //查询该评论的后代
             if(!count($id_arr)){//如果没有回复直接删除
-            $res = $comment->where('id',$data['comment_id'])->delete();
+                $res = $comment->where('id',$data['comment_id'])->delete();
             }else{//删除该条评论下的所有回复
                 $id = array($data['comment_id']);
                 $del_ids = array_merge($id_arr,$id);
-            $res = $comment->whereIn('id',$del_ids)->delete();
+                $res = $comment->whereIn('id',$del_ids)->delete();
             }
 
             if ($res) {
@@ -398,7 +398,7 @@ class CommentController extends Controller
                 ->where('dy_id',$data['record_id'])
                 ->leftjoin('member AS a','a.id','=','comment.member_id')
                 ->leftjoin('member AS b','b.id','=','comment.p_mid')
-                ->orderBy('id')->get();
+                ->get();
 
         } else {//不为空,代表是话题$arr['to_id'] = $data['record_id'];
             $res = $comment
@@ -406,7 +406,7 @@ class CommentController extends Controller
                 ->where('to_id',$data['record_id'])
                 ->leftjoin('member AS a','a.id','=','comment.member_id')
                 ->leftjoin('member AS b','b.id','=','comment.p_mid')
-                ->orderBy('id')->get();
+                ->get();
         }
 
         # 找出所有一级评论，子评论放在branch_members下标中
@@ -428,7 +428,7 @@ class CommentController extends Controller
             $arr[$k]['branch_members'] =  empty($branch_members[$v['id']]) ? null : $branch_members[$v['id']];
         }
         res($arr);
-
+/********************* 以下为微信式的评论回复  ***************************/
 //        #1.判断当前查询动态评论还是话题评论，获取博客下的所有一级评论:$p_ids
 //        if ($data['subject_path'] == 1) {
 //            //为空,代表他是动态 动态id为$arr['dy_id'] = $data['record_id'];
@@ -453,6 +453,7 @@ class CommentController extends Controller
 //        }else{
 //            res(null);
 //        }
+/************************* *******************************************/
     }
 
     /**
@@ -462,14 +463,14 @@ class CommentController extends Controller
      */
     public function hot_comment(Request $request, Comment $comment)
     {
-        $data = $request->only("member_id", 'comment_id');
+        $data = $request->only("member_id", 'first_branch_id');
         $role = [
             'member_id' => 'required',
-            'comment_id' => 'required',
+            'first_branch_id' => 'required',
         ];
         $message = [
             'member_id.required' => '用户请求非法',
-            'comment_id.required' => '请求不合法',
+            'first_branch_id.required' => '请求不合法',
         ];
         //过滤信息
         $validator = Validator::make($data, $role, $message);
@@ -477,13 +478,24 @@ class CommentController extends Controller
             res(null, $validator->messages()->first(), 'fail', 101);
         }
         //获取所有评论信息
-        $all_com = $comment->select('id','parent_id')->get();
-        //获取该评论所有后代并输出的一维数组,包含其本身
-        $th_ids = array_merge([$data['comment_id']],$comment::getChildrenId($all_com,$data['comment_id']));
-        $cmt_arr = $comment->select('*')->whereIn('id',$th_ids)->get();
-        res($cmt_arr);
+        $cmt_arr = $comment->select('comment.id','comment.member_id','comment.created_at','a.nickname','comment.parent_id','comment.p_mid','b.nickname AS p_m_name','comment.content','comment.created_at','a.avatar','b.avatar AS p_avatar')
+            ->where('first_branch_id',$data['first_branch_id'])
+            ->leftjoin('member AS a','a.id','=','comment.member_id')
+            ->leftjoin('member AS b','b.id','=','comment.p_mid')
+            ->get();
+        # 找出所有一级评论，子评论放在branch_members下标中
+        $cmt = [];//一级评论
+        foreach ($cmt_arr as $key => $val){
+            //数据调整
+            $val['avatar'] = config('app.url').$val['avatar'];
+            $val['p_avatar'] = config('app.url').$val['p_avatar'];
+            if($val['id'] == $data['first_branch_id']){
+                $cmt = $val;//一级评论
+                unset($cmt_arr[$key]);
+            }
+        }
+        # 数据调整
+        $cmt['branch_members'] = array_values(obj_arr($cmt_arr));
+        res($cmt);
     }
-
-
-
 }

@@ -54,7 +54,7 @@ class AdminController extends Controller
         //入库
         $data['password'] = bcrypt($data['password']);
         if (!empty($data['avatar'])) {
-            $res = uploadpic('avatar', 'uploads/avatar');//
+            $res = uploadpic('avatar', 'uploads/avatar/admin');//管理者头像文件
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -66,8 +66,6 @@ class AdminController extends Controller
                     return ['status' => 'fail', 'msg' => '图片储存失败'];
             }
             $data['avatar'] = $res; //把得到的地址给picname存到数据库
-        } else {
-            $data['avatar'] = 'uploads/avatar/morentouxiang.png';
         }
         $res = $admin->create($data);
         if ($res->id) {
@@ -130,7 +128,7 @@ class AdminController extends Controller
             unset($data['eamil']);
         }
         if (!empty($data['avatar'])) {
-            $res = uploadpic('avatar', 'uploads/avatar');//
+            $res = uploadpic('avatar', 'uploads/avatar/admin');//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
