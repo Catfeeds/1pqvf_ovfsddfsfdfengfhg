@@ -64,7 +64,7 @@ class MemberController extends Controller
         $data['api_token'] = str_random(60);
         //调用公共文件上传
         if (!empty($data['avatar'])) {
-            $res = uploadpic('avatar', 'uploads/avatar');//
+            $res = uploadpic('avatar', 'uploads/avatar/member/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -196,7 +196,7 @@ class MemberController extends Controller
         }
         //调用公共文件上传
         if (!empty($data['avatar'])) {
-            $res = uploadpic('avatar', 'uploads/avatar');//
+            $res = uploadpic('avatar', 'uploads/avatar/member/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -448,7 +448,7 @@ class MemberController extends Controller
         }
         //调用公共文件上传
         if (!empty($data['avatar'])) {
-            $res = uploadpic('avatar', 'uploads/avatar');//
+            $res = uploadpic('avatar', 'uploads/avatar/member/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     res(null, '图片上传失败', 'fail', 100);

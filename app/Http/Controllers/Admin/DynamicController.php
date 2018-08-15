@@ -276,7 +276,7 @@ class DynamicController extends Controller
             res(null, $validator->messages()->first(), 'fail', 101);
         }
         if (!empty($data['img1'])) {
-            $res = uploadpic('img1', 'uploads/img_url');//
+            $res = uploadpic('img1', 'uploads/img_url/dynamic/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     res(null, '图片上传失败', 'fail', 100);
@@ -290,7 +290,7 @@ class DynamicController extends Controller
             $arr[] = $res; //把得到的地址给picname存到数据库
         }
         if (!empty($data['img2'])) {
-            $res = uploadpic('img2', 'uploads/img_url');//
+            $res = uploadpic('img2', 'uploads/img_url/dynamic/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     res(null, '图片上传失败', 'fail', 100);
@@ -304,7 +304,7 @@ class DynamicController extends Controller
             $arr[] = $res; //把得到的地址给picname存到数据库
         }
         if (!empty($data['img3'])) {
-            $res = uploadpic('img3', 'uploads/img_url');//
+            $res = uploadpic('img3', 'uploads/img_url/dynamic/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     res(null, '图片上传失败', 'fail', 100);

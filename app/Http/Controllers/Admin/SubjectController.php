@@ -44,7 +44,7 @@ class SubjectController extends Controller
         }
         //调用公共文件上传
         if (!empty($data['img_url'])) {
-            $res = uploadpic('img_url', 'uploads/img_url');//
+            $res = uploadpic('img_url', 'uploads/img_url/subject'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -109,7 +109,7 @@ class SubjectController extends Controller
         }
         //调用公共文件上传
         if (!empty($data['img_url'])) {
-            $res = uploadpic('img_url', 'uploads/img_url');//
+            $res = uploadpic('img_url', 'uploads/img_url/subject/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
