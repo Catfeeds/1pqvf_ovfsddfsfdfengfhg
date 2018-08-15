@@ -305,10 +305,10 @@ class TopicController extends Controller
             //评论人 评论内容
             $row2 = $comment
                 ->leftjoin('member','member.id','=','comment.member_id')
-                ->select('comment.member_id', 'comment.content','member.nickname','comment.created_at')->where('to_id', $v['id'])->orderBy('comment.id', 'DESC')->get();//一级评论
+                ->select('comment.member_id', 'comment.content','member.nickname','comment.created_at','member.avatar')->where('to_id', $v['id'])->orderBy('comment.id', 'DESC')->get();//一级评论
             $comments_num =  $row2->count();
             if ($comments_num == 0) {//没有评论
-                $comment_arr = ['nickname'=>null,'content'=>null,'member_id'=>null,'created_at'=>null];
+                $comment_arr[0] = ['nickname'=>null,'content'=>null,'member_id'=>null,'created_at'=>null,'avatar'=>null];
                 $comment_num = 0;//评论数量
             } elseif($comments_num <= 3) {//有评论小于等于三
                 $comment_arr = obj_arr($row2);

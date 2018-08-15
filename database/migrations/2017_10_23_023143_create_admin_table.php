@@ -20,6 +20,7 @@ class CreateAdminTable extends Migration
             $table->increments('id')->comment( '主键ID' );
             $table->string('username',150)->unique()->comment( '登录帐号' );
             $table->string('password',255)->comment( '密码' );
+            $table->smallInteger('admin_type')->nullable()->comment('管理员类型:0超级管理员（不能被删除），1全局后台管理员，2普通管理员');
             $table->smallInteger('status')->nullable()->comment('禁用状态：0禁用，1生效');
             $table->text('note')->nullable()->comment('备注');
             $table->rememberToken()->comment('记住登录');

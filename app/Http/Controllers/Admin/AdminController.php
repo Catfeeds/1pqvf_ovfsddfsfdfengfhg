@@ -23,12 +23,12 @@ class AdminController extends Controller
     public function store(Request $request, Admin $admin)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => 'fail', 'msg' => '非法的请求类型'];
         }
         $data = $request->only('username', 'password', 'avatar', 'note', 'pwd', 'email');
 
         $role = [
-            'username' => 'required|unique:admin',
+            'username' => 'required|unique:admin|alpha_dash|between:3,12',
             'password' => 'required|between:3,20|same:pwd',
             'note' => 'required',
             'email' => 'required|unique:admin|email'
@@ -37,6 +37,8 @@ class AdminController extends Controller
         $message = [
             'username.required' => '用户名不能为空！',
             'username.unique' => '用户名已存在！',
+            'username.alpha_dash' => '用户名必须为数字字母和下划线组成！',
+            'username.between' => '用户名长度为3-12字节！',
             'password.required' => '密码不能为空！',
             'password.between' => '密码长度为3-20！',
             'password.same' => '密码和确认密码不一致！',
@@ -100,7 +102,7 @@ class AdminController extends Controller
     public function update(Request $request, Admin $admin)
     {
         if (!$request->ajax()) {
-            return ['status' => 'fail', 'error' => '非法的请求类型'];
+            return ['status' => 'fail', 'msg' => '非法的请求类型'];
         }
         $data = $request->only('username', 'avatar', 'note', 'email', 'disabled_at');
         // 校验数据
@@ -155,7 +157,7 @@ class AdminController extends Controller
         if ($res) {
             return ['status' => 'success', 'msg' => '修改成功'];
         } else {
-            return ['status' => 'fail', 'code' => 3, 'error' => '修改失败！'];
+            return ['status' => 'fail', 'code' => 3, 'msg' => '修改失败！'];
         }
     }
 
@@ -163,11 +165,15 @@ class AdminController extends Controller
     {
         $admin = new Admin;
         $admin = $admin->find($id);
+        #超级管理员不能被删除
+        if($admin['admin_type'] == 0){
+            return ['status' => 'fail', 'msg' => '此超级管理员不能被删除！'];
+        }
         $res = $admin->delete();
         if ($res) {
             return ['status' => 'success'];
         } else {
-            return ['status' => 'fail', 'error' => '删除失败！'];
+            return ['status' => 'fail', 'msg' => '删除失败！'];
         }
     }
 
