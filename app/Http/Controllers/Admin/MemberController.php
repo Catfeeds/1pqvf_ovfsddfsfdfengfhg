@@ -20,7 +20,7 @@ class MemberController extends Controller
         return view('admin.member.index');
     }
 
-    public function create(Request $request)
+    public function create()
     {
         return view('admin.member.create');
     }

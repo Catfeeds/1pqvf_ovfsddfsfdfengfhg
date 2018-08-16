@@ -75,8 +75,8 @@
                 rules:{
                     username:{
                         required:true,
-                        minlength:2,
-                        maxlength:4
+                        minlength:3,
+                        maxlength:12
                     },
                     note:{
                         required:true,

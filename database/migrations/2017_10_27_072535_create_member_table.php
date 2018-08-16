@@ -24,7 +24,7 @@ class CreateMemberTable extends Migration
             $table->string('avatar',255)->default('uploads/sys_img/morentouxiang.png')->nullable()->comment( '头像' );
             $table->string('city',40)->nullable()->default('深圳')->comment( '城市' );
             $table->unsignedTinyInteger('sex')->nullable()->default(1)->comment( '性别(1:女,2:男,3:保密)' );
-            $table->unsignedTinyInteger('age')->nullable()->default(18)->comment( '年龄' );
+            $table->unsignedTinyInteger('age')->nullable()->comment( '年龄' );
             $table->unsignedSmallInteger('height')->nullable()->comment( '身高' );
             $table->unsignedSmallInteger('weight')->nullable()->comment( '体重' );
             $table->text('address')->nullable()->comment('收货地址');

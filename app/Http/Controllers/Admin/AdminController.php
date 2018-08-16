@@ -6,6 +6,7 @@ use App\Models\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -107,12 +108,14 @@ class AdminController extends Controller
         $data = $request->only('username', 'avatar', 'note', 'email', 'disabled_at');
         // 校验数据
         $role = [
-            'username' => 'required|unique:admin,username,' . $admin->id,
+            'username' => 'required||alpha_dash|between:3,12|unique:admin,username,' . $admin->id,
             'note' => 'required',
             'email' => 'required'
         ];
         $message = [
             'username.required' => '用户名不能为空！',
+            'username.alpha_dash' => '用户名必须为数字字母和下划线组成！',
+            'username.between' => '用户名长度为3-12字节！',
             'username.unique' => '用户名已存在！',
             'note.required' => '用户描述不能为空！',
             'email.required' => '邮箱不能为空！',
@@ -122,6 +125,15 @@ class AdminController extends Controller
             // 验证失败！
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
+
+        #当前修改的是超级管理员，则只有自己才能修改
+        if($admin->admin_type == 0){//修改的是超级管理员
+            $user_id = Auth::guard('admin')->user()->id;//获取当前用户admin_type
+            if($admin->id != $user_id){//不是其本身
+                return ['status' => 'fail', 'msg' => '权限越界！不能修改超级管理员'];
+            }
+        }
+
         $old_email = $admin->email;
         if ($old_email != $data['email']) {
             // 验证失败！

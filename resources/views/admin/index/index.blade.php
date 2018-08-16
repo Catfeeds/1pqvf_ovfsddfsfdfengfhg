@@ -5,7 +5,7 @@
 	{{--顶部导航栏--}}
 	<header class="navbar-wrapper">
 		<div class="navbar navbar-fixed-top">
-			<div class="container-fluid cl"> <a class="logo navbar-logo f-l mr-10 hidden-xs" href="javascript:void(0)">跑券后台管理系统</a> <a class="logo navbar-logo-m f-l mr-10 visible-xs" href="/admin/index">H-ui</a>
+			<div class="container-fluid cl"> <a class="logo navbar-logo f-l mr-10 hidden-xs" href="javascript:void(0)">跑券后台管理系统</a> <a class="logo navbar-logo-m f-l mr-10 visible-xs" href="/admin/index">paoquan</a>
 				<span class="logo navbar-slogan f-l mr-10 hidden-xs">v0.1</span>
 				<a aria-hidden="false" class="nav-toggle Hui-iconfont visible-xs" href="javascript:;">&#xe667;</a>
 				<nav id="Hui-userbar" class="nav navbar-nav navbar-userbar hidden-xs">

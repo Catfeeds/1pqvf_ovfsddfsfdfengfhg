@@ -53,6 +53,7 @@ class IndexController extends Controller
             }
             // 记住登录
             $remember = $request->input('online');
+//            dump($data,$remember);die();
             // 帐号进行登录
             $res = Auth::guard('admin')->attempt(['password' => $data['password'], 'username' => $data['username'], 'disabled_at' => null], $remember);
             if ($res) {
