@@ -82,7 +82,7 @@
 						<li><a data-href="{{ url('admin/health')  }}" data-title="健康达人" href="javascript:void(0)">健康达人</a></li>
 						<li><a data-href="{{ url('admin/perseverance')  }}" data-title="毅力使者" href="javascript:void(0)">毅力使者</a></li>
 						<li><a data-href="{{ url('admin/takeflag')  }}" data-title="夺旗先锋" href="javascript:void(0)">夺旗先锋</a></li>
-						<li><a data-href="{{ url('admin/rankings')  }}" data-title="排行榜" href="javascript:void(0)">排行榜</a></li>
+						<li><a data-href="{{ url('admin/rankings')  }}" data-title="排行榜" href="javascript:void(0)">每日排行</a></li>
 					</ul>
 				</dd>
 			</dl>

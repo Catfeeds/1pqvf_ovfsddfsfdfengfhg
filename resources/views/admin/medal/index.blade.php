@@ -45,12 +45,12 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[2,4,-1],[2,4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索
         'ordering':true,//启用排序
-        "order": [[ 1, "desc" ]],//排序规则  默认下标为1的显示倒序
+        "order": [[ 0, "desc" ]],//排序规则  默认下标为1的显示倒序
         "stateSave": false,//使用状态.是否保持 默认true
         "processing": false,//是否显示数据在处理中的状态
         "serverSide": false,//是否开启服务端
@@ -82,7 +82,7 @@
             $(row).addClass('text-c');//居中
             $(row).find('td:eq(4)').html(data.type == 1 ? '运动' : (data.type == 2 ? '优惠券' :'活动'));
 
-            $(row).find('td:eq(3)').html(data.medal_url != null ? '<img style="width: 100px;" src="/'+ data.medal_url +'">' : '暂无图片');//z状态
+            $(row).find('td:eq(3)').html(data.medal_url != null ? '<img style="width: 40px;" src="/'+ data.medal_url +'">' : '暂无图片');//z状态
 
 
             $(row).find('td:eq(-3)').html(data.pid == 0 ? '点亮' : '暗淡');//z状态
