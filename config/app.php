@@ -163,12 +163,12 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
         Laravel\Tinker\TinkerServiceProvider::class,
+        Maatwebsite\Excel\ExcelServiceProvider::class,//excel
 
         /********* 自定义注册件 ********************/
         Toplan\PhpSms\PhpSmsServiceProvider::class,//短信sms
         Hyperbolaa\Alisms\AlismsServiceProvider::class,//阿里sms
         Intervention\Image\ImageServiceProvider::class,//图片处理 压缩
-        Maatwebsite\Excel\ExcelServiceProvider::class,//excel
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
@@ -232,12 +232,12 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
+        'Excel'    => Maatwebsite\Excel\Facades\Excel::class,//excel
 
         /********* 自定义添加件 ********************/
         'Captcha' => Mews\Captcha\Facades\Captcha::class,//后台Admin_captcha验证码
         'PhpSms'=>Toplan\PhpSms\Facades\Sms::class,//短信sms
         'Image' => Intervention\Image\Facades\Image::class,//图片处理 压缩
-        'Excel'    => Maatwebsite\Excel\Facades\Excel::class,//excel
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,//Socialite第三方登陆扩展
         'UUID' => Webpatser\Uuid\Uuid::class,//随机生成uuid
 //        'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
