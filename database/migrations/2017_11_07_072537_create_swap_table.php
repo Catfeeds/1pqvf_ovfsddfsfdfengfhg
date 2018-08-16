@@ -24,6 +24,7 @@ class CreateSwapTable extends Migration
             $table->unsignedBigInteger('integral')->comment('需要的积分数量');
             $table->unsignedInteger('exc_mem_id')->nullable()->comment( '兑换人的member表id' );
             $table->timestamps();
+            $table->softDeletes();
             $table->foreign('coupon_id')->references('id')->on('coupon') ->onUpdate('cascade')->onDelete('cascade');
             $table->foreign('member_id')->references('id')->on('member') ->onUpdate('cascade')->onDelete('cascade');
             $table->foreign('exc_mem_id')->references('id')->on('member') ->onUpdate('cascade')->onDelete('cascade');

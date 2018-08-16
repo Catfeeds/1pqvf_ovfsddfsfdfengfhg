@@ -119,7 +119,14 @@ class TopicController extends Controller
     public function ajax_list(Request $request, Topic $topic)
     {
         if ($request->ajax()) {
-            $data = $topic->with('subject')->with('member')->select('id', 'lev_state', 'subject_id', 'subjec_catename', 'member_id', 'nice_num', 'content', 'img_url', 'created_at')->get();
+            $data = $topic
+                ->leftJoin('member','member.id','=','topic.member_id')
+                ->leftJoin('subject','subject.id','=','topic.subject_id')
+                ->select('topic.id', 'topic.lev_state', 'topic.subject_id', 'topic.member_id', 'topic.nice_num', 'topic.content', 'topic.img_url', 'topic.created_at','subject.cate_name','member.nickname')
+                ->get();
+            foreach ($data as $k=>$v){
+                $data[$k]['nice_num'] = empty($v['nice_num']) ? 0 : count($v['nice_num']);
+            }
             $cnt = !empty($data) ? count($data) : 0;
             $info = [
                 'draw' => $request->get('draw'),
@@ -127,6 +134,7 @@ class TopicController extends Controller
                 'recordsFiltered' => $cnt,
                 'data' => $data,
             ];
+//            dump(obj_arr($info));
             return $info;
         }
     }

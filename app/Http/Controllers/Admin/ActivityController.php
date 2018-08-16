@@ -33,7 +33,7 @@ class ActivityController extends Controller
         if (!$request->ajax()) {
             return ['status' => 'fail', 'error' => '非法的请求类型'];
         }
-        $data = $request->only('actMall_id', 'kucun', 'actMall_num', 'title', 'img_url', 'note', 'editorValue', 'start_at', 'end_at', 'top_img_url');
+        $data = $request->only('actMall_id', 'kucun', 'actMall_num', 'title', 'img_url', 'note', 'editorValue', 'start_at', 'end_at', 'top_img_url','status');
         $role = [
             'actMall_id' => 'required',
             'kucun' => 'required',
@@ -45,6 +45,7 @@ class ActivityController extends Controller
             'editorValue' => 'nullable',
             'start_at' => 'required|date',
             'end_at' => 'required|after_or_equal:start_at',
+            'status' => 'required',
         ];
         $message = [
             'actMall_id.required' => '奖品选择错误！',
@@ -61,6 +62,7 @@ class ActivityController extends Controller
             'start_at.date' => '时间格式不正确',
             'end_at.required' => '结束时间不能为空',
             'end_at.after_or_equal' => '结束时间不能在开始时间之前',
+            'status.required' => '活动状态不能为空',
         ];
         $validator = Validator::make($data, $role, $message);
         //如果验证失败,返回错误信息
@@ -69,7 +71,7 @@ class ActivityController extends Controller
         }
 
         if (!empty($data['img_url'])) {
-            $res = uploadpic('img_url', 'uploads/img_url');//
+            $res = uploadpic('img_url', 'uploads/img_url/activity/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -83,7 +85,7 @@ class ActivityController extends Controller
             $data['img_url'] = $res; //把得到的地址给picname存到数据库
         }
         if (!empty($data['top_img_url'])) {
-            $res = uploadpic('top_img_url', 'uploads/img_url');//
+            $res = uploadpic('top_img_url', 'uploads/img_url/activity/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -146,7 +148,7 @@ class ActivityController extends Controller
     {
         if ($request->ajax()) {
             // 查询奖品名称
-            $data = $activity->with('actmall')->select('id', 'note', 'title', 'img_url', 'content', 'actMall_id', 'actMall_num', 'start_at', 'end_at', 'man_num', 'top_img_url')->get();
+            $data = $activity->with('actmall')->select('id', 'note', 'title', 'img_url', 'content', 'actMall_id', 'actMall_num', 'start_at', 'end_at', 'man_num', 'top_img_url','status')->get();
             $cnt = count($data);
             $info = [
                 'draw' => $request->get('draw'),
@@ -170,7 +172,7 @@ class ActivityController extends Controller
         if (!$request->ajax()) {
             return ['status' => 'fail', 'error' => '非法的请求类型'];
         }
-        $data = $request->only('actMall_id', 'kucun', 'actMall_num', 'old_actmall_id', 'old_actMall_num', 'title', 'img_url', 'note', 'editorValue', 'start_at', 'end_at', 'top_img_url');
+        $data = $request->only('actMall_id', 'kucun', 'actMall_num', 'old_actmall_id', 'old_actMall_num', 'title', 'img_url', 'note', 'editorValue', 'start_at', 'end_at', 'top_img_url','status');
         $role = [
             'actMall_id' => 'required',
             'kucun' => 'required',
@@ -181,6 +183,7 @@ class ActivityController extends Controller
             'top_img_url' => 'nullable|image',
             'start_at' => 'nullable|date',
             'end_at' => 'nullable|after_or_equal:start_at',
+            'status' => 'required'
         ];
         $message = [
             'actMall_id.required' => '奖品不能为空！',
@@ -193,6 +196,7 @@ class ActivityController extends Controller
             'top_img_url.image' => '顶部图片格式合法,必须是 jpeg、bmp、jpg、gif、gpeg、png格式！',
             'start_at.date' => '时间格式不正确',
             'end_at.after_or_equal' => '结束时间不能在开始时间之前',
+            'status.required' => '活动状态不能为空'
         ];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
@@ -269,7 +273,7 @@ class ActivityController extends Controller
         }
 
         if (!empty($data['img_url'])) {
-            $res = uploadpic('img_url', 'uploads/img_url');
+            $res = uploadpic('img_url', 'uploads/img_url/activity/'.date('Y-m-d'));
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -288,7 +292,7 @@ class ActivityController extends Controller
             }
         }
         if (!empty($data['top_img_url'])) {
-            $res = uploadpic('top_img_url', 'uploads/img_url');
+            $res = uploadpic('top_img_url', 'uploads/img_url/activity/'.date('Y-m-d'));
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];

@@ -5,7 +5,7 @@
         <form action="{{ url('admin/activity')  }}" method="post" enctype="multipart/form-data"  class="form form-horizontal" id="form-activity-add">
             {{ csrf_field() }}
             <div class="row cl">
-                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>活动标题：</label>
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>活动主题：</label>
                 <div class="formControls col-xs-8 col-sm-9">
                     <input type="text" class="input-text"  placeholder="活动标题" id="title" name="title">
                 </div>
@@ -50,6 +50,23 @@
                 <div class="formControls col-xs-8 col-sm-9">
                     <input type="datetime-local" class="input-text"  id="start_at" name="start_at" >
                     <input type="datetime-local" class="input-text"  id="end_at" name="end_at" style="margin-top: 5px;">
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>活动状态：</label>
+                <div class="formControls col-xs-8 col-sm-9 skin-minimal">
+                    <div class="radio-box">
+                        <input name="cr_type" type="radio" value="0" id="status-8" checked >
+                        <label for="status-1">失效</label>
+                    </div>
+                    <div class="radio-box">
+                        <input name="cr_type" type="radio" value="1" id="status-8" checked >
+                        <label for="status-1">生效</label>
+                    </div>
+                    <div class="radio-box">
+                        <input name="cr_type" type="radio" value="2" id="status-9" >
+                        <label for="status-2">生效但在客户端隐藏</label>
+                    </div>
                 </div>
             </div>
             <div class="row cl">

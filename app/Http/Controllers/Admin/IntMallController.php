@@ -54,12 +54,6 @@ class IntMallController extends Controller
         if ($validator->fails()) {
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
-        if ($data['trade_num'] < 1) {
-            $data['trade_num'] = 1;
-        }
-        if ($data['integral_price'] < 1) {
-            $data['integral_price'] = 1;
-        }
         //入库
         if (!empty($data['img_url'])) {
             $res = uploadpic('img_url', 'uploads/img_url/int_mall/'.date('Y-m-d'));//
@@ -146,14 +140,7 @@ class IntMallController extends Controller
         } else {
             unset($data['img_url']);
         }
-        if (!empty($data['trade_num']) && $data['trade_num'] < 0) {
-            $data['trade_num'] = 1;
-        }
-        if (!empty($data['integral_price']) && $data['integral_price'] < 0) {
-            $data['integral_price'] = 1;
-        }
         // 更新数据
-        //false 失败
         $res = $intMall->update($data);
         if ($res) {
             return ['status' => 'success', 'msg' => '更新成功'];

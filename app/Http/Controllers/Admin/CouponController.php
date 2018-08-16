@@ -369,8 +369,8 @@ class CouponController extends Controller
     {
         $coupon = new Coupon();
         $coupon = $coupon->find($id);
-        if(!empty($coupon['member_id']) || $coupon['status']==1){
-            return ['status' => 'fail', 'error' => '用户持有该优惠券，不能删除！'];
+        if($coupon['status']==1 || $coupon['status']==4 ){//被领取了和冻结期的优惠券不能删除
+            return ['status' => 'fail', 'error' => '该优惠券有效，不能删除！'];
         }else{
             $res = $coupon->delete();
             if ($res) {

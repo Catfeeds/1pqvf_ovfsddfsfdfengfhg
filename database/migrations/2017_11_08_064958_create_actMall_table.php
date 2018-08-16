@@ -22,7 +22,7 @@ class CreateActMallTable extends Migration
             $table->string('note',150)->nullable()->comment('奖品简介');
             $table->unsignedBigInteger('price')->comment('奖品价格');
             $table->string('img_url',255)->nullable()->comment('奖品图片');
-            $table->unsignedBigInteger('act_num')->comment('奖品数量');
+            $table->unsignedBigInteger('act_num')->default(0)->comment('奖品数量');
             $table->timestamps();
             $table->softDeletes();
         });

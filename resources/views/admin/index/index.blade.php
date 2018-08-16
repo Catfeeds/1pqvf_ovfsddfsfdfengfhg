@@ -10,7 +10,7 @@
 				<a aria-hidden="false" class="nav-toggle Hui-iconfont visible-xs" href="javascript:;">&#xe667;</a>
 				<nav id="Hui-userbar" class="nav navbar-nav navbar-userbar hidden-xs">
 					<ul class="cl">
-						<li>{{ \Auth::guard('admin')->user()->note  }}</li>
+						<li>{{ \Auth::guard('admin')->user()->note }}</li>
 						<li class="dropDown dropDown_hover">
 							<a href="#" class="dropDown_A"> {{ \Auth::guard('admin')->user()->username  }} <i class="Hui-iconfont">&#xe6d5;</i></a>
 							<ul class="dropDown-menu menu radius box-shadow">

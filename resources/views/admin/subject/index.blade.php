@@ -6,7 +6,7 @@
 	话题分类列表 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
 <div class="page-container">
 	<div class="cl pd-5 bg-1 bk-gray mt-20"> <span class="l">
-			<a href="javascript:;" onclick="subject_add('添加话题分类','{{ url('admin/subject/create')  }}','800','500')" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe600;</i> 添加话题分类</a></span>
+			<a href="javascript:;" onclick="subject_add('添加话题分类','{{ url('admin/subject/create') }}','800','500')" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe600;</i> 添加话题分类</a></span>
 	</div>
 	<table class="table table-border table-bordered table-bg datatables">
 		<thead>
@@ -43,12 +43,12 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[2,4,-1],[2,4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索
         'ordering':true,//启用排序
-        "order": [[ 1, "desc" ]],//排序规则  默认下标为1的显示倒序
+        "order": [[ 0, "desc" ]],//排序规则  默认下标为1的显示倒序
         "stateSave": false,//使用状态.是否保持 默认true
         "processing": false,//是否显示数据在处理中的状态
         "serverSide": false,//是否开启服务端

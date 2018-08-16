@@ -52,7 +52,7 @@ class ActMallController extends Controller
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
         if (!empty($data['img_url'])) {
-            $res = uploadpic('img_url', 'uploads/img_url');//
+            $res = uploadpic('img_url', 'uploads/img_url/act_mall/'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -64,13 +64,6 @@ class ActMallController extends Controller
                     return ['status' => 'fail', 'msg' => '图片储存失败'];
             }
             $data['img_url'] = $res; //把得到的地址给picname存到数据库
-        }
-        //数据调整
-        if( !empty($data['act_num']) && $data['act_num'] < 0 || $data['act_num'] == 0 ){
-            $data['act_num'] = 1;
-        }
-        if( !empty($data['price']) && $data['price'] < 0 || $data['price'] == 0 ){
-            $data['price'] = 1;
         }
         //入库
         $res = $actmall->create($data);
@@ -124,7 +117,7 @@ class ActMallController extends Controller
         $message = [
             'price.integer' => '商品价格必须大于0！',
             'img_url.image' => '商品图片格式合法,必须是 jpeg、bmp、jpg、gif、gpeg、png格式！',
-            'act_num.integer' => '商品数量必须大于0！',
+            'act_num.integer' => '商品数量必须大于或等于0！',
         ];
         $validator = Validator::make($data, $role, $message);
         if ($validator->fails()) {
@@ -132,7 +125,7 @@ class ActMallController extends Controller
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
         if( !empty($data['img_url']) ){
-            $res = uploadpic('img_url','uploads/img_url');
+            $res = uploadpic('img_url','uploads/img_url/act_mall/'.date('Y-m-d'));
             switch ($res){
                 case 1: return  ['status' => 'fail', 'msg' => '图片上传失败'];
                 case 2: return  ['status' => 'fail', 'msg' => '图片不合法'];
@@ -143,20 +136,10 @@ class ActMallController extends Controller
             //删除原图
             $ress = $actmall->img_url;
             if( !empty($ress) ){
-                unlink($ress);
+                @unlink($ress);
             }
-        }
-        //数据调整
-        if( !empty( $data['act_num'] ) && $data['act_num'] < 0 || $data['act_num'] == 0 ){
-            $data['act_num'] = 1;
-        }
-        if( !empty($data['price']) && $data['price'] < 0 || $data['price'] == 0 ){
-            $data['price'] = 1;
-        }
-        foreach ( $data as $k=>$v ){
-            if( empty( $v )  ){
-                unset( $data[$k] );
-            }
+        }else{
+            unset($data['img_url']);
         }
         // 更新数据
         $res = $actmall->update($data);

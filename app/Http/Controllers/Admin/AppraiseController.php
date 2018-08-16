@@ -59,7 +59,7 @@ class AppraiseController extends Controller
         //处理图片 只要有一张图片,则进入
         if (!empty($data['img1']) || !empty($data['img2']) || !empty($data['img3']) || !empty($data['img4'])) {
             if (!empty($data['img1'])) {
-                $res = uploadpic('img1', 'uploads/img_url');//
+                $res = uploadpic('img1', 'uploads/img_url/appraise/'.date('Y-m-d'));//
                 switch ($res) {
                     case 1:
                         res(null, '图片上传失败', 'fail', 100);
@@ -73,7 +73,7 @@ class AppraiseController extends Controller
                 $arr[] = $res;
             }
             if (!empty($data['img2'])) {
-                $res = uploadpic('img2', 'uploads/img_url');//
+                $res = uploadpic('img2', 'uploads/img_url/appraise/'.date('Y-m-d'));//
                 switch ($res) {
                     case 1:
                         res(null, '图片上传失败', 'fail', 100);
@@ -87,7 +87,7 @@ class AppraiseController extends Controller
                 $arr[] = $res; //把得到的地址给picname存到数据库
             }
             if (!empty($data['img3'])) {
-                $res = uploadpic('img3', 'uploads/img_url');//
+                $res = uploadpic('img3', 'uploads/img_url/appraise/'.date('Y-m-d'));//
                 switch ($res) {
                     case 1:
                         res(null, '图片上传失败', 'fail', 100);
@@ -101,7 +101,7 @@ class AppraiseController extends Controller
                 $arr[] = $res; //把得到的地址给picname存到数据库
             }
             if (!empty($data['img4'])) {
-                $res = uploadpic('img4', 'uploads/img_url');//
+                $res = uploadpic('img4', 'uploads/img_url/appraise/'.date('Y-m-d'));//
                 switch ($res) {
                     case 1:
                         res(null, '图片上传失败', 'fail', 100);

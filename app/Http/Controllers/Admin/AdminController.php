@@ -57,7 +57,7 @@ class AdminController extends Controller
         //入库
         $data['password'] = bcrypt($data['password']);
         if (!empty($data['avatar'])) {
-            $res = uploadpic('avatar', 'uploads/avatar/admin');//管理者头像文件
+            $res = uploadpic('avatar', 'uploads/avatar/admin/'.date('Y-m-d'));//管理者头像文件
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];
@@ -142,7 +142,7 @@ class AdminController extends Controller
             unset($data['eamil']);
         }
         if (!empty($data['avatar'])) {
-            $res = uploadpic('avatar', 'uploads/avatar/admin');//
+            $res = uploadpic('avatar', 'uploads/avatar/admin'.date('Y-m-d'));//
             switch ($res) {
                 case 1:
                     return ['status' => 'fail', 'msg' => '图片上传失败'];

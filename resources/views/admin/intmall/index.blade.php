@@ -36,12 +36,12 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[2,4,-1],[2,4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索
         'ordering':true,//启用排序
-        "order": [[ 1, "desc" ]],//排序规则  默认下标为1的显示倒序
+        "order": [[ 0, "desc" ]],//排序规则  默认下标为1的显示倒序
         "stateSave": false,//使用状态.是否保持 默认true
         "processing": false,//是否显示数据在处理中的状态
         "serverSide": false,//是否开启服务端
@@ -69,7 +69,7 @@
             var cnt = data.recordsFiltered;
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
-            $(row).find('td:eq(2)').html(data.img_url == null ? '暂无图片' : '<img src="/'+ data.img_url +'" style="width: 100px;height: 80px;">');
+            $(row).find('td:eq(2)').html(data.img_url == null ? '暂无图片' : '<img src="/'+ data.img_url +'" style="width: 80px;height: 60px;">');
             //操作
             $(row).find('td:eq(-1)').html('<a title="编辑" href="javascript:;" onclick="intmall_edit(' +
                 '\'积分商城编辑\',\'/admin/intMall/'+data.id+'/edit\',\''+data.id+'\')" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a> ' +

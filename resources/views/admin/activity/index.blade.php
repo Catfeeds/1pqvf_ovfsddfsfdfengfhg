@@ -15,8 +15,9 @@
 			</tr>
 			<tr class="text-c">
                 <th width="">ID</th>
+                <th width="">活动主题</th>
 				<th width="">活动简介</th>
-				<th width="">活动标题</th>
+				<th width="">状态</th>
                 <th>活动封面</th>
                 <th>活动说明</th>
                 <th>奖品</th>
@@ -51,12 +52,12 @@
 	/* database 插件  */
     $('.datatables').DataTable({
         //显示数量
-        "lengthMenu":[[4,-1],[4,'全部']],
+        "lengthMenu":[[10,20,-1],[10,20,'全部']],
         'paging':true,//分页
         'info':true,//分页辅助
         'searching':true,//既时搜索
         'ordering':true,//启用排序
-        "order": [[ 1, "desc" ]],//排序规则  默认下标为1的显示倒序
+        "order": [[ 0, "desc" ]],//排序规则  默认下标为1的显示倒序
         "stateSave": false,//使用状态.是否保持 默认true
         "processing": false,//是否显示数据在处理中的状态
         "serverSide": false,//是否开启服务端
@@ -73,8 +74,9 @@
         //按列显示从服务器端过来的数据
         'columns':[
             {'data':'id',"defaultContent": ""},
-            {'data':'note',"defaultContent": ""},
             {'data':'title',"defaultContent": "暂无"},
+            {'data':'note',"defaultContent": ""},
+            {'data':'',"defaultContent": ""},
             {'data':'img_url',"defaultContent": ""},
             {'data':'',"defaultContent": ""},
             {'data':'actmall.note',"defaultContent": ""},
@@ -89,17 +91,18 @@
             var cnt = data.recordsFiltered;
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
-            $(row).find('td:eq(6)').html('开始时间 : '+ data.start_at +'<br>结束时间 : ' + data.end_at);
+            $(row).find('td:eq(7)').html('开始时间 : '+ data.start_at +'<br>结束时间 : ' + data.end_at);
             $(row).find('td:eq(-2)').html(data.man_num == null ? 0 : data.man_num);
+            $(row).find('td:eq(3)').html(data.status == 0 ? '失效' : data.status == 1 ? '有效' : '客户端隐藏');
             for(var i=0;i<data.content.length;i++){
                 data.content = data.content.replace('\'','ct2rs1')
                 data.content = data.content.replace('\"','ct2rs2')
                 data.content = data.content.replace('&','ct2rs3')
             }
-            $(row).find('td:eq(4)').html("<input class='btn radius btn-secondary' onclick='showContent(\""+data.content+ "\"  )' type='button' value = '查看'>");//z状态
+            $(row).find('td:eq(5)').html("<input class='btn radius btn-secondary' onclick='showContent(\""+data.content+ "\"  )' type='button' value = '查看'>");//z状态
 
-            $(row).find('td:eq(3)').html( "<img style='width: 100px;' src='/"+ data.img_url +"'>" );
-            $(row).find('td:eq(-3)').html( "<img style='width: 100px;' src='/"+ data.top_img_url +"'>" );
+            $(row).find('td:eq(4)').html( data.img_url == null ? '暂无' : "<img style='width: 80px;' src='/"+ data.img_url +"'>" );
+            $(row).find('td:eq(-3)').html( data.top_img_url == null ? '暂无' : "<img style='width: 80px;' src='/"+ data.top_img_url +"'>" );
             //操作
             $(row).find('td:eq(-1)').html('<a title="编辑" href="javascript:;" onclick="actmall_edit(' +
                 '\'活动编辑\',\'/admin/activity/'+data.id+'/edit\',\''+data.id+'\')" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a> ' +
