@@ -29,7 +29,7 @@
                     </div>
                     <div class="radio-box">
                         <input name="coupon_type" type="radio" value="1" id="status-2" >
-                        <label for="status-2">减免</label>
+                        <label for="status-2">满减</label>
                     </div>
                     <div class="radio-box">
                         <input name="coupon_type" type="radio" value="2" id="status-3"  checked>
@@ -58,6 +58,7 @@
                       <input class="input-text upload-url radius" type="text" name="uploadfile-1" id="uploadfile-1" readonly>
                                             <a href="javascript:void();" class="btn btn-secondary radius">浏览文件</a>
                       <input type="file" multiple name="deduction_url" class="input-file">
+                        <font size="1" color="red">*如果为不填则与优惠券图片一致</font>
                     </span>
                 </div>
             </div>

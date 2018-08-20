@@ -751,9 +751,11 @@ class CouponController extends Controller
      * @return array
      */
     public function stores_location(Request $request,CnLatLngBag $cn_lat_lng_bag){
-        $cn_lat_lng_bag->creates_sz_loc(10);//生成3500条坐标
-//        $cn_lat_lng_bag->creates_sz_loc(1);//测试用
+        try{
+            $cn_lat_lng_bag->creates_sz_loc(5);//生成3500条坐标
+        }catch(\Illuminate\Database\QueryException $ex){
+            return ['status' => 'fail', 'msg' => '新增失败'];
+        }
         return ['status' => 'success', 'msg' => '新增成功'];
     }
-
 }

@@ -34,12 +34,12 @@ class CouponCategoryController extends Controller
             'coupon_explain' => 'required',
             'merchant_id' => 'exists:merchant,id',
             'coupon_type' => 'required|integer|between:0,5',
-            'coupon_money' => 'required|numeric',
+            'coupon_money' => 'required_if:coupon_type,0,1,2|nullable|numeric',
             'spend_money' => 'nullable|sometimes|numeric',
             'send_start_at' => 'required|date',
-            'send_end_at' => 'required|after_or_equal:start_at',
+            'send_end_at' => 'required|date|after:start_at',
             'picture_url' => 'required|image',
-            'deduction_url' => 'required|image',
+            'deduction_url' => 'nullable|image',
         ];
         $message = [
             'coupon_name.required' => '必须填写优惠券名称',
@@ -47,19 +47,19 @@ class CouponCategoryController extends Controller
             'coupon_name.string' => '优惠券名称不合法',
             'coupon_name.between' => '优惠券名称字节长度为2到12位',
             'merchant_id.exists' => '商家不存在！',
-            'coupon_money.required' => '优惠券面额不能为空！',
-            'coupon_money.numeric' => '优惠券面额不正确！',
             'coupon_type.required' => '优惠券类型不能为空！',
             'coupon_type.integer' => '优惠券类型不正确',
             'coupon_type.between' => '优惠券类型不正确',
+            'coupon_money.required_if' => '现金满减折扣时必填优惠券面额！',
+            'coupon_money.numeric' => '优惠券面额不正确！',
             'spend_money.numeric' => '最低消费额不正确',
             'send_start_at.date' => '开始时间类型错误！',
             'send_start_at.required'=>'开始时间不能为空',
             'send_end_at.required'=>'结束时间不能为空',
-            'send_end_at.after_or_equal' => '结束时间必须是开始时间之后！',
+            'send_end_at.date' => '结束时间类型错误！',
+            'send_end_at.after' => '结束时间必须是开始时间之后！',
             'picture_url.required' => '优惠券图片不能为空！',
             'picture_url.image' => '优惠券图片格式不正确,必须是 jpeg、bmp、jpg、gif、gpeg、png！！',
-            'deduction_url.required' => '抵扣券图片不能为空！',
             'deduction_url.image' => '抵扣券图片格式不正确,必须是 jpeg、bmp、jpg、gif、gpeg、png！！',
         ];
         $validator = Validator::make($data, $role, $message);
@@ -80,19 +80,26 @@ class CouponCategoryController extends Controller
                 return ['status' => 'fail', 'msg' => '图片储存失败'];
         }
         $data['picture_url'] = $res;
-        $res = uploadpic('deduction_url', 'uploads/img_url/coupon/'.date('Y-m-d'));//
-        switch ($res) {
-            case 1:
-                return ['status' => 'fail', 'msg' => '图片上传失败'];
-            case 2:
-                return ['status' => 'fail', 'msg' => '图片不合法'];
-            case 3:
-                return ['status' => 'fail', 'msg' => '图片后缀不对'];
-            case 4:
-                return ['status' => 'fail', 'msg' => '图片储存失败'];
+
+        if(empty($data['deduction_url'])){
+            $data['deduction_url'] = $data['picture_url'];
+        }else{
+            $res = uploadpic('deduction_url', 'uploads/img_url/coupon/'.date('Y-m-d'));//
+            switch ($res) {
+                case 1:
+                    return ['status' => 'fail', 'msg' => '图片上传失败'];
+                case 2:
+                    return ['status' => 'fail', 'msg' => '图片不合法'];
+                case 3:
+                    return ['status' => 'fail', 'msg' => '图片后缀不对'];
+                case 4:
+                    return ['status' => 'fail', 'msg' => '图片储存失败'];
+            }
+            $data['deduction_url'] = $res;
         }
-        $data['deduction_url'] = $res;
+
         $data['coupon_explain'] = json_encode(explode('\r\n', trim($data['coupon_explain'])),JSON_UNESCAPED_UNICODE);
+
         $res = $coupon_category->create($data);
         if ($res->id) {
             return ['status' => 'success', 'msg' => '添加成功'];
@@ -136,7 +143,7 @@ class CouponCategoryController extends Controller
             'coupon_explain' => 'required',
             'merchant_id' => 'exists:merchant,id',
             'coupon_type' => 'integer|between:0,5',
-            'coupon_money' => 'numeric',
+            'coupon_money' => 'nullable|numeric',
             'spend_money' => 'nullable|sometimes|numeric',
             'send_start_at' => 'nullable|date',
             'send_end_at' => 'nullable|after_or_equal:start_at',
@@ -164,9 +171,7 @@ class CouponCategoryController extends Controller
             // 验证失败！
             return ['status' => 'fail', 'msg' => $validator->messages()->first()];
         }
-        if ($data['coupon_money'] < 1) {
-            return ['status' => 'fail', 'msg' => "优惠券面额不能为小于1"];
-        }
+
         //调用公共文件上传
         if (!empty($data['picture_url'])) {
             $res = uploadpic('picture_url', 'uploads/picture_url/coupon'.date('Y-m-d'));//
@@ -188,6 +193,7 @@ class CouponCategoryController extends Controller
         } else {
             unset($data['picture_url']);
         }
+
         if (!empty($data['deduction_url'])) {
             $res = uploadpic('deduction_url', 'uploads/img_url/coupon'.date('Y-m-d'));//
             switch ($res) {
@@ -208,6 +214,7 @@ class CouponCategoryController extends Controller
         } else {
             unset($data['deduction_url']);
         }
+
         $data = array_filter($data);//为空的是不更新的部分
         $data['coupon_explain'] = json_encode(explode('\r\n', trim($data['coupon_explain'])),JSON_UNESCAPED_UNICODE);
         // 更新数据

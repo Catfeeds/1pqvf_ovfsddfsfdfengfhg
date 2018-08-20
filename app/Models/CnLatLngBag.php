@@ -9,7 +9,7 @@ class CnLatLngBag extends Model
 {
     protected $table = 'cn_lat_lng_bag';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','uuid','abcode','lng','lat','formatted_address', 'province','city','district','town','created_at','updated_at'];
+    protected $fillable = ['id','uuid','adcode','lng','lat','formatted_address', 'province','city','district','town','created_at','updated_at'];
 
     //多对一
 //    function CnProCity(){ return $this->belongsTo(\App\Models\CnProCity::class,'adcode','adcode');
@@ -22,29 +22,33 @@ class CnLatLngBag extends Model
      * 生成预编码库
      */
     function creates_sz_loc($n){
-        $arr = make_sz_long_lat($n);
-        $num_uuid = count($arr);
-        $arr_uuid = create_unique_max_8bit_int($num_uuid);//唯一编码数组
-        $ak = 'fSTUrykGGBg5guFLt2RSaQpaPIZvFzPd';
-        DB::transaction(function () use ($arr,$arr_uuid,$ak) {
-            foreach ($arr as $k => $v){
-                $arr_formatted = get_address_component($ak,$v['lng'],$v['lat']);
-                $arr_tf[] = $this->create([
-                    'uuid' => $arr_uuid[$k],
-                    'lng' => $v['lng'],
-                    'lat' => $v['lat'],
-                    'formatted_address' => $arr_formatted['result']['formatted_address'],
-                    'district' => $arr_formatted['result']['addressComponent']['district'],
-                    'adcode' => $arr_formatted['result']['addressComponent']['adcode'],
-                    'province' => $arr_formatted['result']['addressComponent']['province'],
-                    'city' => $arr_formatted['result']['addressComponent']['city'],
+        try{
+            $arr = make_sz_long_lat($n);
+            $num_uuid = count($arr);
+            $arr_uuid = create_unique_max_8bit_int($num_uuid);//唯一编码数组
+            $ak = 'fSTUrykGGBg5guFLt2RSaQpaPIZvFzPd';
+            DB::transaction(function () use ($arr,$arr_uuid,$ak) {
+                foreach ($arr as $k => $v){
+                    $arr_formatted = get_address_component($ak,$v['lng'],$v['lat']);
+                    $arr_tf[] = $this->create([
+                        'uuid' => $arr_uuid[$k],
+                        'lng' => $v['lng'],
+                        'lat' => $v['lat'],
+                        'formatted_address' => $arr_formatted['result']['formatted_address'],
+                        'district' => $arr_formatted['result']['addressComponent']['district'],
+                        'adcode' => $arr_formatted['result']['addressComponent']['adcode'],
+                        'province' => $arr_formatted['result']['addressComponent']['province'],
+                        'city' => $arr_formatted['result']['addressComponent']['city'],
 //                    'cr_adr_code' =>
-                ]);
-            }
-
-            DB::commit();
-            return date("H:i:s");
-        });
+                    ]);
+                }
+                DB::commit();
+                return date("H:i:s");
+            });
+        }catch(\Illuminate\Database\QueryException $ex){
+            return ['status' => 'fail', 'msg' => '新增失败'];
+        }
+        return ['status' => 'success', 'msg' => '新增成功'];
 
     }
 

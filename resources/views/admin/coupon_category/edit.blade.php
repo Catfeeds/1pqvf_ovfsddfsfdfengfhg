@@ -25,19 +25,19 @@
                     <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>优惠券类型：</label>
                     <div class="formControls col-xs-8 col-sm-9 skin-minimal">
                         <div class="radio-box">
-                            <input name="coupon_type" type="radio" value="0" id="status-1" >
+                            <input name="coupon_type" type="radio" value="0" id="status-1"  @if($pictureInfo->coupon_type == 0) checked @endif >
                             <label for="status-1">现金</label>
                         </div>
                         <div class="radio-box">
-                            <input name="coupon_type" type="radio" value="1" id="status-2" >
-                            <label for="status-2">减免</label>
+                            <input name="coupon_type" type="radio" value="1" id="status-2" @if($pictureInfo->coupon_type == 1) checked @endif >
+                            <label for="status-2">满减</label>
                         </div>
                         <div class="radio-box">
-                            <input name="coupon_type" type="radio" value="2" id="status-3"  checked>
+                            <input name="coupon_type" type="radio" value="2" id="status-3" @if($pictureInfo->coupon_type == 2) checked @endif>
                             <label for="status-3">折扣</label>
                         </div>
                         <div class="radio-box">
-                            <input name="coupon_type" type="radio" value="3" id="status-4" >
+                            <input name="coupon_type" type="radio" value="3" id="status-4" @if($pictureInfo->coupon_type == 3) checked @endif>
                             <label for="status-4">其他</label>
                         </div>
                     </div>

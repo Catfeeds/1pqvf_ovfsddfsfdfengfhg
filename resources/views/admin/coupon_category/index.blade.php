@@ -12,13 +12,14 @@
 	<table class="table table-border table-bordered table-bg datatables">
 		<thead>
 			<tr>
-				<th scope="col" colspan="10">优惠券分类列表</th>
+				<th scope="col" colspan="12">优惠券分类列表</th>
 			</tr>
 			<tr class="text-c">
                 <th width="">商家ID</th>
                 <th width="">商家名称</th>
 				<th width="">优惠券ID</th>
                 <th width="">优惠券名称</th>
+                <th width="">优惠券类型</th>
                 <th width="">优惠券使用说明</th>
                 <th width="">优惠券图片</th>
                 <th width="">使用后图片</th>
@@ -34,6 +35,7 @@
 				<td>商家名称</td>
 				<td>优惠券ID</td>
 				<td>优惠券名称</td>
+				<td>优惠券类型</td>
 				<td>优惠券使用说明</td>
 				<td>优惠券图片</td>
                 <td>使用后图片</td>
@@ -66,7 +68,7 @@
         "serverSide": false,//是否开启服务端
         //设置不需要排序的字段
         "columnDefs": [{
-            "targets": [1,3,4,5,6],
+            "targets": [1,3,5,6,7],
             "orderable": false
         }],
         "ajax": {
@@ -80,6 +82,7 @@
             {'data':'merchant.nickname',"defaultContent": ""},
             {'data':'id',"defaultContent": ""},
             {'data':'coupon_name',"defaultContent": ""},
+            {'data':'',"defaultContent": ""},
             {'data':'coupon_explain',"defaultContent": ""},
             {'data':'picture_url',"defaultContent": ""},
             {'data':'deduction_url',"defaultContent": ""},
@@ -94,10 +97,10 @@
 			$('#coutent').html( cnt );
             $(row).addClass('text-c');//居中
             $(row).find('td:eq(2)').html(data.id);
-            $(row).find('td:eq(6)').html(data.deduction_url == null ? '还没有图片' : '<img src="/'+ data.deduction_url +'" style="width: 50px;height: 30px;">');
-            $(row).find('td:eq(3)').html();
-            $(row).find('td:eq(9)').html();
-            $(row).find('td:eq(5)').html(data.picture_url == null ? '还没有图片' : '<img src="/'+ data.picture_url +'" style="width: 50px;height: 30px;">');
+            $(row).find('td:eq(7)').html(data.deduction_url == null ? '还没有图片' : '<img src="/'+ data.deduction_url +'" style="width: 50px;height: 30px;">');
+            $(row).find('td:eq(4)').html(data.coupon_type == 0 ? '现金券' : data.coupon_type == 1 ? '满减券': data.coupon_type == 2 ? '折扣券' : '其他');
+            $(row).find('td:eq(10)').html();
+            $(row).find('td:eq(6)').html(data.picture_url == null ? '还没有图片' : '<img src="/'+ data.picture_url +'" style="width: 50px;height: 30px;">');
 
             //操作
             $(row).find('td:eq(-1)').html('<a title="编辑" href="javascript:;" onclick="picture_edit(' +
